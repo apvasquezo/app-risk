@@ -9,10 +9,10 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-purple-900 to-purple-700">
+    <main className="min-h-screen bg-gradient-to-br ">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-16">
-          <h1 className="text-4xl font-bold text-white mb-4">
+          <h1 className="text-4xl font-bold text-purple-900 mb-4">
             Sistema de Gestión de Riesgos Operativos
           </h1>
           <p className="text-orange-400 text-xl">
@@ -21,7 +21,7 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6 bg-white/10 backdrop-blur-lg border-purple-300/20">
+          <Card className="p-6 bg-purple-800 backdrop-blur-lg border-purple-300/20">
             <div className="flex flex-col items-center text-center">
               <AlertTriangle className="h-12 w-12 text-orange-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">
@@ -33,7 +33,7 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/10 backdrop-blur-lg border-purple-300/20">
+          <Card className="p-6  bg-purple-800 backdrop-blur-lg border-purple-300/20">
             <div className="flex flex-col items-center text-center">
               <Shield className="h-12 w-12 text-orange-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">
@@ -45,7 +45,7 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/10 backdrop-blur-lg border-purple-300/20">
+          <Card className="p-6  bg-purple-800 backdrop-blur-lg border-purple-300/20">
             <div className="flex flex-col items-center text-center">
               <BarChart3 className="h-12 w-12 text-orange-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">
@@ -57,7 +57,7 @@ export default function Home() {
             </div>
           </Card>
 
-          <Card className="p-6 bg-white/10 backdrop-blur-lg border-purple-300/20">
+          <Card className="p-6  bg-purple-800 backdrop-blur-lg border-purple-300/20">
             <div className="flex flex-col items-center text-center">
               <Users className="h-12 w-12 text-orange-400 mb-4" />
               <h3 className="text-lg font-semibold text-white mb-2">

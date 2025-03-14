@@ -3,6 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/UI/button"
 import { Input } from "@/components/UI/input"
 import { Label } from "@/components/UI/label"
@@ -10,16 +11,24 @@ import { Checkbox } from "@/components/UI/checkbox"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica de autenticación
+    if (email === "admin@example.com" && password === "admin123") {
+      toast.success("Inicio de sesión exitoso");
+      router.push("/admin");
+    } else {
+      toast.error("Credenciales inválidas");
+    }    
     console.log({ email, password, rememberMe })
   }
 
