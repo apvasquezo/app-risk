@@ -7,7 +7,6 @@ import {
   FileText, 
   AlertTriangle, 
   List, 
-  Settings, 
   HelpCircle,
   FileBarChart,
   Bell
@@ -15,52 +14,57 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarImage } from "@/components/ui/avatar"
 
 const sidebarItems = [
   {
-    title: "Dashboard",
+    title: "Usuarios",
     icon: BarChart2,
-    href: "/admin"
+    href: "/super/users"
   },
   {
-    title: "Procesos",
-    icon: List,
-    href: "/admin/process"
-  },
-  {
-    title: "Riesgos",
-    icon: AlertTriangle,
-    href: "/admin/risk"
-  },
-  {
-    title: "Causas y Consecuencias",
-    icon: AlertTriangle,
-    href: "/admin/cause"
-  },
-  {
-    title: "Controles",
-    icon: AlertTriangle,
-    href: "/admin/control"
-  },
-  {
-    title: "Eventos",
-    icon: AlertCircle ,
-    href: "/admin/event"
-  },
-  {
-    title: "Planes de Acción",
+    title: "Personal",
     icon: FileBarChart,
-    href: "/admin/plans"
+    href: "/super/personal"
   },
   {
-    title: "Reportes",
+    title: "Servicios y/o Productos",
+    icon: AlertTriangle,
+    href: "/super/services"
+  },
+  {
+    title: "Canales",
+    icon: AlertTriangle,
+    href: "/super/chanel"
+  },
+  {
+    title: "MacroProcesos",
+    icon: List,
+    href: "/super/macroprocess"
+  },
+  {
+    title: "Categoria de Riesgos",
+    icon: AlertTriangle,
+    href: "/super/categoryrisk"
+  },
+  {
+    title: "Factores de Riesgo",
     icon: FileText,
-    href: "/admin/reports"
+    href: "/super/factor"
+  },  
+  {
+    title: "Probabilidad e Impacto",
+    icon: AlertTriangle,
+    href: "/super/probability"
+  },
+  {
+    title: "Tipo de Control",
+    icon: AlertCircle ,
+    href: "/super/typecontrol"
   }
 ];
 
-export default function DashboardLayout({
+export default function SuperLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -76,8 +80,8 @@ export default function DashboardLayout({
             <Image
             src="/logo_orisk.png"
             alt="O-Risk Logo"
-            width={120}
-            height={60}
+            width={140}
+            height={80}
             className="h-auto w-full"
             priority
             />
@@ -90,9 +94,6 @@ export default function DashboardLayout({
               <Bell className="h-5 w-5 text-gray-600" />
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-full">
-              <Settings className="h-5 w-5 text-gray-600" />
-            </button>
-            <button className="p-2 hover:bg-gray-100 rounded-full">
               <Avatar>
                 <AvatarImage src="/user.gif" />
               </Avatar> 
@@ -103,8 +104,8 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-16 w-73 h-[calc(100vh-4rem)] bg-purple-900 border-r border-gray-200">
-        <div className="mt-6 p-4">
-          <div className="space-y-1">
+        <div className="p-4">
+          <div className="mt-6 space-y-1">
             {sidebarItems.map((item) => (
               <Link
                 key={item.title}

@@ -4,10 +4,10 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/UI/button"
-import { Input } from "@/components/UI/input"
-import { Label } from "@/components/UI/label"
-import { Checkbox } from "@/components/UI/checkbox"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
@@ -35,7 +35,7 @@ export default function LoginForm() {
   return (
     <div className="flex w-full flex-col md:flex-row">
       {/* Lado izquierdo con logo */}
-      <div className="flex w-full items-center justify-center bg-gradient-to-br from-purple-900 to-purple-700 p-8 md:w-5/12 md:p-12 lg:p-16">
+      <div className="flex w-full items-center justify-center bg-gradient-to-br  p-8 md:w-5/12 md:p-12 lg:p-16">
         <div className="max-w-md text-center">
           <div className="mb-8 flex justify-center">
             {/* Placeholder para el logo de O-Risk */}
@@ -50,23 +50,23 @@ export default function LoginForm() {
               />
             </div>
           </div>
-          <h2 className="mb-4 text-2xl font-bold text-white md:text-3xl">Gestión de Riesgos Operativos</h2>
-          <p className="text-lg text-white/80">
+          <h2 className="mb-4 text-2xl font-bold text-purple-900 md:text-3xl">Gestión de Riesgos Operativos</h2>
+          <p className="text-lg text-gray/80">
             Soluciones integrales para la identificación, evaluación y control de riesgos empresariales.
           </p>
         </div>
       </div>
 
       {/* Lado derecho con formulario */}
-      <div className="flex w-full items-center justify-center p-8 md:w-7/12 md:p-12 lg:p-16">
+      <div className="flex w-full items-center justify-center p-8 md:w-7/12 md:p-12 lg:p-16 bg-purple-800 ">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-purple-900">Bienvenido</h1>
+            <h1 className="text-3xl font-bold text-white">Bienvenido</h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-orange-500">
+              <Label htmlFor="email" className="text-orange-100">
                 Correo electrónico
               </Label>
               <div className="relative">
@@ -84,7 +84,7 @@ export default function LoginForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-orange-500">
+              <Label htmlFor="password" className="text-orange-100">
                 Contraseña
               </Label>
               <div className="relative">
@@ -114,25 +114,25 @@ export default function LoginForm() {
                   id="remember"
                   checked={rememberMe}
                   onCheckedChange={(checked) => setRememberMe(checked === true)}
-                  className="border-[#b47de4] text-[#9c44dc] focus:ring-[#9c44dc]"
+                  className="border-[#fc8b21] text-[#9c44dc] focus:ring-[#9c44dc]"
                 />
-                <Label htmlFor="remember" className="text-sm text-[#9c44dc]">
+                <Label htmlFor="remember" className="text-sm text-gray-50">
                   Recordarme
                 </Label>
               </div>
-              <Link href="#" className="text-sm text-orange-500 hover:text-orange-600">
+              <Link href="#" className="text-sm text-orange-100 hover:text-black">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
 
-            <Button type="submit" className="w-full bg-purple-900 hover:bg-[#8a3bc4] text-white">
+            <Button type="submit" className="w-full bg-orange-500 hover:bg-[#cc90f7] text-white">
               Iniciar sesión
             </Button>
 
             <div className="mt-6 text-center">
-              <p className="text-[#9c44dc]">
-                ¿No tienes una cuenta?{" "}
-                <Link href="#" className="font-medium text-orange-500 hover:text-orange-600">
+              <p className="text-orange-100">
+                ¿No tienes una cuenta?{"    "}
+                <Link href="#" className="font-medium text-white hover:text-black">
                   Regístrate
                 </Link>
               </p>

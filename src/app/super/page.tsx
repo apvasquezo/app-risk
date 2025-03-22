@@ -1,9 +1,9 @@
-import LoginForm from "@/components/views/login-form"
+import SuperForm from "@/components/views/super-form"
 
 export default function Home() {
   return (
     <main className="flex min-h-screen bg-white">
-      <LoginForm />
+      <SuperForm />
     </main>
   )
 }
