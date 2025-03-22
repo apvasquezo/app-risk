@@ -7,8 +7,9 @@ import {
   FileText, 
   AlertTriangle, 
   List, 
-  HelpCircle,
-  FileBarChart,
+  Users,
+  User,
+  Rss,
   Bell
 } from "lucide-react";
 import Link from "next/link";
@@ -19,12 +20,12 @@ import { Avatar, AvatarImage } from "@/components/ui/avatar"
 const sidebarItems = [
   {
     title: "Usuarios",
-    icon: BarChart2,
+    icon: User,
     href: "/super/users"
   },
   {
     title: "Personal",
-    icon: FileBarChart,
+    icon: Users,
     href: "/super/personal"
   },
   {
@@ -34,7 +35,7 @@ const sidebarItems = [
   },
   {
     title: "Canales",
-    icon: AlertTriangle,
+    icon: Rss,
     href: "/super/chanel"
   },
   {
@@ -75,21 +76,18 @@ export default function SuperLayout({
     <div className="min-h-screen">
       {/* Top Navigation */}
       <nav className="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
-        <div className="px-4 h-16 flex justify-between items-center">
+        <div className="px-20 h-16 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Image
             src="/logo_orisk.png"
             alt="O-Risk Logo"
-            width={140}
-            height={80}
+            width={125}
+            height={75}
             className="h-auto w-full"
             priority
             />
           </div>
           <div className="flex items-center space-x-4">
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <HelpCircle className="h-5 w-5 text-gray-600" />
-            </button>
             <button className="p-2 hover:bg-gray-100 rounded-full">
               <Bell className="h-5 w-5 text-gray-600" />
             </button>
@@ -104,7 +102,7 @@ export default function SuperLayout({
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-16 w-73 h-[calc(100vh-4rem)] bg-purple-900 border-r border-gray-200">
-        <div className="p-4">
+        <div className="p-2">
           <div className="mt-6 space-y-1">
             {sidebarItems.map((item) => (
               <Link

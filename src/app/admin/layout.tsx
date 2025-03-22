@@ -71,13 +71,13 @@ export default function DashboardLayout({
     <div className="min-h-screen">
       {/* Top Navigation */}
       <nav className="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
-        <div className="px-4 h-16 flex justify-between items-center">
+        <div className="px-20 h-16 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Image
             src="/logo_orisk.png"
             alt="O-Risk Logo"
-            width={120}
-            height={60}
+            width={125}
+            height={75}
             className="h-auto w-full"
             priority
             />
@@ -103,7 +103,7 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-16 w-73 h-[calc(100vh-4rem)] bg-purple-900 border-r border-gray-200">
-        <div className="mt-6 p-4">
+        <div className="mt-6 p-2">
           <div className="space-y-1">
             {sidebarItems.map((item) => (
               <Link
