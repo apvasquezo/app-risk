@@ -15,58 +15,42 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 
-interface Employee {
+interface Macroprocess {
   id: string;
-  cedula: string;
   name: string;
-  cargo: string;
-  area: string;
-  correo: string;
+  description: string;
 }
 
-export default function Home() {
+export default function Macroprocess() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
-    cedula: "",
     name: "",
-    cargo: "",
-    area: "",
-    correo: "",
+    description: "",
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const [errors, setErrors] = useState({
-    cedula: false,
     name: false,
-    correo: false,
+    description: false,
   });
 
-  // Temporary mock data - will be replaced with API data
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: "1",
-      cedula: "123456789",
-      name: "Juan Pérez",
-      cargo: "Desarrollador",
-      area: "TI",
-      correo: "juan@example.com",
-    },
-    {
-      id: "2",
-      cedula: "987654321",
-      name: "María González",
-      cargo: "Diseñadora UX",
-      area: "Diseño",
-      correo: "maria@example.com",
-    }
+  const [macroprocesses, setMacroprocesses] = useState<Macroprocess[]>([
+    {id: "1",
+    name: "Gestión Estratégica",
+    description: "Incluye la planificación y dirección estratégica de la organización.",
+  },
+  {
+    id: "2",
+    name: "Misionales",
+    description: "Engloba los procesos relacionados directamente con la misión de la organización.",
+  },
   ]);
 
   const validateForm = () => {
     const newErrors = {
-      cedula: !formData.cedula.trim(),
       name: !formData.name.trim(),
-      correo: !formData.correo.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo),
+      description: !formData.description.trim(),
     };
 
     setErrors(newErrors);
@@ -75,23 +59,19 @@ export default function Home() {
 
   const resetForm = () => {
     setFormData({
-      cedula: "",
       name: "",
-      cargo: "",
-      area: "",
-      correo: "",
+      description: "",
     });
     setEditingId(null);
     setErrors({
-      cedula: false,
       name: false,
-      correo: false,
+      description: false,
     });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -103,26 +83,24 @@ export default function Home() {
 
     try {
       if (editingId) {
-        // Update existing employee
-        setEmployees(employees.map(emp => 
-          emp.id === editingId 
-            ? { ...formData, id: editingId }
-            : emp
+        setMacroprocesses(macroprocesses.map(mp => 
+          mp.id === editingId 
+            ? { ...formData, id: editingId } 
+            : mp
         ));
         toast({
-          title: "Empleado actualizado",
-          description: "Los datos del empleado han sido actualizados exitosamente.",
+          title: "Macroproceso actualizado",
+          description: "Los datos del macroproceso han sido actualizados exitosamente.",
         });
       } else {
-        // Add new employee
-        const newEmployee = {
+        const newMacroprocess = {
           ...formData,
-          id: Date.now().toString(), // Temporary ID generation
+          id: Date.now().toString(),
         };
-        setEmployees([...employees, newEmployee]);
+        setMacroprocesses([...macroprocesses, newMacroprocess]);
         toast({
-          title: "Empleado registrado",
-          description: "El nuevo empleado ha sido registrado exitosamente.",
+          title: "Macroproceso registrado",
+          description: "El nuevo macroproceso ha sido registrado exitosamente.",
         });
       }
       resetForm();
@@ -135,27 +113,27 @@ export default function Home() {
     }
   };
 
-  const handleEdit = (employee: Employee) => {
-    setFormData(employee);
-    setEditingId(employee.id);
+  const handleEdit = (macroprocess: Macroprocess) => {
+    setFormData(macroprocess);
+    setEditingId(macroprocess.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = (id: string) => {
     try {
-      setEmployees(employees.filter(emp => emp.id !== id));
+      setMacroprocesses(macroprocesses.filter(mp => mp.id !== id));
       if (editingId === id) {
         resetForm();
       }
       toast({
-        title: "Empleado eliminado",
-        description: "El empleado ha sido eliminado exitosamente.",
+        title: "Macroproceso eliminado",
+        description: "El macroproceso ha sido eliminado exitosamente.",
       });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Ocurrió un error al eliminar el empleado.",
+        description: "Ocurrió un error al eliminar el macroproceso.",
       });
     }
   };
@@ -166,36 +144,16 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <Users className="h-8 w-8 text-violet-600" />
           <h1 className="text-3xl font-bold text-violet-900">
-            Gestión de Empleados
+            Gestión de Macroprocesos
           </h1>
         </div>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">
-                  Cédula <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  required
-                  placeholder="Ingrese la cédula"
-                  value={formData.cedula}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cedula: e.target.value });
-                    setErrors({ ...errors, cedula: false });
-                  }}
-                  className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.cedula ? "border-red-500" : ""
-                  }`}
-                />
-                {errors.cedula && (
-                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  name <span className="text-red-500">*</span>
+                  name del Macroproceso <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required
@@ -215,53 +173,22 @@ export default function Home() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">
-                  Cargo
-                </label>
-                <Input
-                  placeholder="Ingrese el cargo"
-                  value={formData.cargo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cargo: e.target.value })
-                  }
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Área
-                </label>
-                <Input
-                  placeholder="Ingrese el área"
-                  value={formData.area}
-                  onChange={(e) =>
-                    setFormData({ ...formData, area: e.target.value })
-                  }
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Correo <span className="text-red-500">*</span>
+                  Descripción <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required
-                  type="email"
-                  placeholder="Ingrese el correo"
-                  value={formData.correo}
+                  placeholder="Ingrese la descripción"
+                  value={formData.description}
                   onChange={(e) => {
-                    setFormData({ ...formData, correo: e.target.value });
-                    setErrors({ ...errors, correo: false });
+                    setFormData({ ...formData, description: e.target.value });
+                    setErrors({ ...errors, description: false });
                   }}
                   className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.correo ? "border-red-500" : ""
+                    errors.description ? "border-red-500" : ""
                   }`}
                 />
-                {errors.correo && (
-                  <p className="text-sm text-red-500">
-                    {!formData.correo.trim()
-                      ? "Este campo es obligatorio"
-                      : "Ingrese un correo válido"}
-                  </p>
+                {errors.description && (
+                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
                 )}
               </div>
             </div>
@@ -273,12 +200,12 @@ export default function Home() {
                 {editingId ? (
                   <>
                     <Pencil className="w-4 h-4 mr-2" />
-                    Actualizar Empleado
+                    Actualizar Macroproceso
                   </>
                 ) : (
                   <>
                     <UserPlus className="w-4 h-4 mr-2" />
-                    Registrar Empleado
+                    Registrar Macroproceso
                   </>
                 )}
               </Button>
@@ -300,40 +227,34 @@ export default function Home() {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-orange-900 flex items-center gap-2">
               <Users className="h-6 w-6" />
-              Listado de Empleados
+              Listado de Macroprocesos
             </h2>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Cédula</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">name</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Cargo</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Área</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Correo</TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Descripción</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employees.map((employee) => (
+                  {macroprocesses.map((macroprocess) => (
                     <TableRow 
-                      key={employee.id}
+                      key={macroprocess.id}
                       className={`border-b hover:bg-violet-50/50 transition-colors duration-200 ${
-                        editingId === employee.id ? "bg-violet-50" : ""
+                        editingId === macroprocess.id ? "bg-violet-50" : ""
                       }`}
                     >
-                      <TableCell>{employee.cedula}</TableCell>
-                      <TableCell>{employee.name}</TableCell>
-                      <TableCell>{employee.cargo}</TableCell>
-                      <TableCell>{employee.area}</TableCell>
-                      <TableCell>{employee.correo}</TableCell>
+                      <TableCell>{macroprocess.name}</TableCell>
+                      <TableCell>{macroprocess.description}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
                             variant="outline"
                             className="text-violet-600 border-violet-600 hover:bg-violet-50"
-                            onClick={() => handleEdit(employee)}
+                            onClick={() => handleEdit(macroprocess)}
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
@@ -341,7 +262,7 @@ export default function Home() {
                             size="sm"
                             variant="outline"
                             className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                            onClick={() => handleDelete(employee.id)}
+                            onClick={() => handleDelete(macroprocess.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

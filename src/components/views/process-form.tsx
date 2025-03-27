@@ -31,12 +31,12 @@ export default function ProcesoForm() {
 
         {/* Campos del formulario */}
         <div className="space-y-4">
-          {/* Nombre del proceso */}
+          {/* name del proceso */}
           <div className="space-y-1">
-            <Label htmlFor="nombre">Nombre</Label>
+            <Label htmlFor="name">name</Label>
             <Input 
-              id="nombre" 
-              placeholder="Escribe el nombre" 
+              id="name" 
+              placeholder="Escribe el name" 
               className="border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
             />
           </div>
@@ -81,7 +81,7 @@ export default function ProcesoForm() {
             <Label htmlFor="responsable">Responsable</Label>
             <Input 
               id="responsable" 
-              placeholder="Nombre del responsable" 
+              placeholder="name del responsable" 
               className="border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
             />
           </div>

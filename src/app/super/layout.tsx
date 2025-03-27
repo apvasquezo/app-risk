@@ -3,14 +3,15 @@
 import { cn } from "@/lib/utils";
 import { 
   AlertCircle, 
-  BarChart2, 
   FileText, 
   AlertTriangle, 
-  List, 
+  Square, 
   Users,
   User,
   Rss,
-  Bell
+  Bell,
+  Shield,
+  ChartBarIcon
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -36,26 +37,31 @@ const sidebarItems = [
   {
     title: "Canales",
     icon: Rss,
-    href: "/super/chanel"
+    href: "/super/channels"
   },
   {
     title: "MacroProcesos",
-    icon: List,
+    icon: Square,
     href: "/super/macroprocess"
   },
   {
     title: "Categoria de Riesgos",
-    icon: AlertTriangle,
-    href: "/super/categoryrisk"
+    icon: Shield,
+    href: "/super/riskcategory"
+  },
+  {
+    title: "Tipo de Riesgos",
+    icon: Shield,
+    href: "/super/typerisk"
   },
   {
     title: "Factores de Riesgo",
     icon: FileText,
-    href: "/super/factor"
+    href: "/super/factorrisk"
   },  
   {
     title: "Probabilidad e Impacto",
-    icon: AlertTriangle,
+    icon: ChartBarIcon,
     href: "/super/probability"
   },
   {
@@ -101,9 +107,9 @@ export default function SuperLayout({
       </nav>
 
       {/* Sidebar */}
-      <aside className="fixed left-0 top-16 w-73 h-[calc(100vh-4rem)] bg-purple-900 border-r border-gray-200">
+      <aside className="fixed left-0 top-10 w-73 h-[calc(110vh-4rem)] bg-purple-900 border-r border-gray-200">
         <div className="p-2">
-          <div className="mt-6 space-y-1">
+          <div className="mt-5 space-y-1">
             {sidebarItems.map((item) => (
               <Link
                 key={item.title}

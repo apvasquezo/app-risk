@@ -74,7 +74,7 @@ export default function LoginForm() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="nombre@ejemplo.com"
+                  placeholder="name@ejemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
