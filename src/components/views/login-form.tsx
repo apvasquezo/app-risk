@@ -120,7 +120,7 @@ export default function LoginForm() {
                   Recordarme
                 </Label>
               </div>
-              <Link href="#" className="text-sm text-orange-100 hover:text-black">
+              <Link href="/recoverpassword" className="text-sm text-orange-100 hover:text-black">
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
@@ -128,15 +128,6 @@ export default function LoginForm() {
             <Button type="submit" className="w-full bg-orange-500 hover:bg-[#cc90f7] text-white">
               Iniciar sesión
             </Button>
-
-            <div className="mt-6 text-center">
-              <p className="text-orange-100">
-                ¿No tienes una cuenta?{"    "}
-                <Link href="#" className="font-medium text-white hover:text-black">
-                  Regístrate
-                </Link>
-              </p>
-            </div>
           </form>
         </div>
       </div>
