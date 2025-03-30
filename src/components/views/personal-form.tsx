@@ -195,7 +195,7 @@ export default function Home() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">
-                  name <span className="text-red-500">*</span>
+                  Nombre <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required

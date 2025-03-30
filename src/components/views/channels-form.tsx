@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, Edit3, Trash2 } from "lucide-react";
+import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ export default function Channels() {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "El name del canal es obligatorio.",
+        description: "El nombre del canal es obligatorio.",
       });
       return;
     }
@@ -108,7 +108,7 @@ export default function Channels() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                name del Canal <span className="text-red-500">*</span>
+                Nombre del Canal <span className="text-red-500">*</span>
               </label>
               <Input
                 required

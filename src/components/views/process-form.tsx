@@ -33,7 +33,7 @@ export default function ProcesoForm() {
         <div className="space-y-4">
           {/* name del proceso */}
           <div className="space-y-1">
-            <Label htmlFor="name">name</Label>
+            <Label htmlFor="name">Nombre</Label>
             <Input 
               id="name" 
               placeholder="Escribe el name" 

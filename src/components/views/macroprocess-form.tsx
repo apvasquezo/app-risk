@@ -153,7 +153,7 @@ export default function Macroprocess() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">
-                  name del Macroproceso <span className="text-red-500">*</span>
+                  Nombre del Macroproceso <span className="text-red-500">*</span>
                 </label>
                 <Input
                   required

@@ -57,7 +57,7 @@ const sidebarItems = [
   {
     title: "Factores de Riesgo",
     icon: FileText,
-    href: "/super/factorrisk"
+    href: "/super/riskfactor"
   },  
   {
     title: "Probabilidad e Impacto",
