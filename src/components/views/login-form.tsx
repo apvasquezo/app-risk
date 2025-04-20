@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Lock, User } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
+import { User } from "lucide-react";
 
 export default function LoginForm() {
   const [username, setUsername] = useState("")
@@ -66,17 +67,17 @@ export default function LoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-orange-100">
-                Nombre de usuario
+              <Label htmlFor="email" className="text-orange-100">
+                Correo electrónico
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="Nombre de usuario"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="email"
+                  type="email"
+                  placeholder="name@ejemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
                   required
                 />
@@ -92,7 +93,7 @@ export default function LoginForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
