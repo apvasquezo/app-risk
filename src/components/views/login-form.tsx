@@ -4,14 +4,15 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/UI/button"
+import { Input } from "@/components/UI/input"
+import { Label } from "@/components/UI/label"
+import { Checkbox } from "@/components/UI/checkbox"
 import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
+import { User } from "lucide-react";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -67,14 +68,14 @@ export default function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-orange-100">
-                Correo electrónico
+                Usuario
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
+                <User className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="name@ejemplo.com"
+                  placeholder="ingresa tu usuario"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
@@ -92,7 +93,7 @@ export default function LoginForm() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
