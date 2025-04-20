@@ -8,13 +8,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { Eye, EyeOff, Lock, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState("")
+  const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
@@ -23,13 +23,13 @@ export default function LoginForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Aquí iría la lógica de autenticación
-    if (email === "admin@example.com" && password === "admin123") {
+    if (username === "admin" && password === "admin123") {
       toast.success("Inicio de sesión exitoso");
       router.push("/admin");
     } else {
       toast.error("Credenciales inválidas");
     }    
-    console.log({ email, password, rememberMe })
+    console.log({ username, password, rememberMe })
   }
 
   return (
@@ -66,17 +66,17 @@ export default function LoginForm() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-orange-100">
-                Correo electrónico
+              <Label htmlFor="username" className="text-orange-100">
+                Nombre de usuario
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
+                <User className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@ejemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="Nombre de usuario"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
                   required
                 />
