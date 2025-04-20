@@ -1,97 +1,184 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { useEffect, useState } from "react";
+import { UserPlus, FolderKanban } from "lucide-react";
+import { Card } from "@/components/UI/card";
+import { Input } from "@/components/UI/input";
+import { Button } from "@/components/UI/button";
+import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/UI/select";
+
+interface Microproceso {
+  id: string;
+  name: string;
+}
 
 export default function ProcesoForm() {
-  const [descripcion, setDescripcion] = useState("");
-  const [tipo, setTipo] = useState("");
+  const { toast } = useToast();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    microprocesoId: "",
+  });
+
+  const [errors, setErrors] = useState({
+    name: false,
+    description: false,
+    microprocesoId: false,
+  });
+
+  const [microprocesos, setMicroprocesos] = useState<Microproceso[]>([]);
+
+  useEffect(() => {
+    // Simulamos fetch a microprocesos del superusuario
+    setMicroprocesos([
+      { id: "1", name: "Análisis de Riesgos" },
+      { id: "2", name: "Evaluación de Controles" },
+      { id: "3", name: "Gestión Documental" },
+    ]);
+  }, []);
+
+  const validateForm = () => {
+    const newErrors = {
+      name: !formData.name.trim(),
+      description: !formData.description.trim(),
+      microprocesoId: !formData.microprocesoId,
+    };
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(Boolean);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast({
+        variant: "destructive",
+        title: "Error de validación",
+        description: "Por favor complete todos los campos obligatorios correctamente.",
+      });
+      return;
+    }
+
+    try {
+      // Aquí iría tu lógica para enviar el proceso al backend
+      toast({
+        title: "Proceso registrado",
+        description: "El proceso ha sido registrado exitosamente.",
+      });
+
+      setFormData({ name: "", description: "", microprocesoId: "" });
+      setErrors({ name: false, description: false, microprocesoId: false });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Ocurrió un error al procesar la solicitud.",
+      });
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center h-[90vh] p-70">
-      <div className="w-full max-w-lg bg-white p-6 rounded-lg shadow-lg shadow-violet-500">
-        {/* Título */}
-        <div className="mb-4">
-          <h1 className="text-xl font-bold text-orange-500 text-center mb-4">PROCESO</h1>
-          <p className="text-gray-600 text-sm text-justify">
-            Un proceso es un conjunto de actividades planificadas que implican la participación de personas y recursos materiales coordinados para 
-            conseguir un objetivo previamente identificado.
-          </p>
+    <div className="min-h-screen p-8">
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div className="flex items-center gap-4">
+          <FolderKanban className="h-8 w-8 text-violet-600" />
+          <h1 className="text-3xl font-bold text-violet-900">
+            Proceso
+          </h1>
         </div>
 
-        {/* Campos del formulario */}
-        <div className="space-y-4">
-          {/* name del proceso */}
-          <div className="space-y-1">
-            <Label htmlFor="name">Nombre</Label>
-            <Input 
-              id="name" 
-              placeholder="Escribe el name" 
-              className="border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
-
-          {/* Tipo - Dropdown */}
-          <div className="space-y-1">
-            <Label htmlFor="tipo">Tipo</Label>
-            <Select onValueChange={setTipo} defaultValue="">
-              <SelectTrigger 
-                id="tipo" 
-                className="w-full border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
-              >
-                <SelectValue placeholder="Seleccionar" />
-              </SelectTrigger>
-              <SelectContent className="z-50 bg-white border border-orange-500 shadow-lg rounded-md">
-                <SelectItem value="misional">Misional</SelectItem>
-                <SelectItem value="estrategico">Estratégico</SelectItem>
-                <SelectItem value="apoyo">De Apoyo</SelectItem>
-                <SelectItem value="otros">Otros</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Descripción */}
-          <div className="space-y-1">
-            <Label htmlFor="descripcion">Descripción</Label>
-            <div className="relative">
-              <Textarea
-                id="descripcion"
-                placeholder="Máx. 4000 caracteres."
-                className="min-h-24 resize-none pr-16 border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
-                value={descripcion}
-                onChange={(e) => setDescripcion(e.target.value)}
-                maxLength={4000}
-              />
-              <div className="absolute bottom-1 right-2 text-xs text-gray-400">{descripcion.length}/4000</div>
+        <Card className="p-6 shadow-lg border-t-4 border-violet-500">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <p className="text-gray-600 text-sm text-justify mb-4">
+              Un proceso es un conjunto de actividades planificadas que implican la participación de personas y recursos materiales coordinados para 
+              conseguir un objetivo previamente identificado.
+              </p>
             </div>
-          </div>
 
-          {/* Responsable */}
-          <div className="space-y-1">
-            <Label htmlFor="responsable">Responsable</Label>
-            <Input 
-              id="responsable" 
-              placeholder="name del responsable" 
-              className="border-orange-500 focus:border-violet-700 focus:ring-2 focus:ring-violet-500"
-            />
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-violet-700">
+                  Nombre del Proceso <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="Ingrese el nombre del proceso"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  className={`border-violet-200 focus:ring-violet-500 ${
+                    errors.name ? "border-red-500" : ""
+                  }`}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
+                )}
+              </div>
 
-          {/* Botones */}
-          <div className="flex justify-end gap-3 mt-4">
-            <Button variant="outline" size="sm">Cancelar</Button>
-            <Button className="bg-orange-600 hover:bg-violet-800 text-white text-sm px-4">Crear</Button>
-          </div>
-        </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-violet-700">
+                  Descripción <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  placeholder="Ingrese la descripción del proceso"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className={`border-violet-200 focus:ring-violet-500 ${
+                    errors.description ? "border-red-500" : ""
+                  }`}
+                />
+                {errors.description && (
+                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
+                )}
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <label className="text-sm font-medium text-violet-700">
+                  Microproceso Asociado <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={formData.microprocesoId}
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, microprocesoId: value });
+                    setErrors({ ...errors, microprocesoId: false });
+                  }}
+                >
+                  <SelectTrigger
+                    className={`border-violet-200 focus:ring-violet-500 w-full ${
+                      errors.microprocesoId ? "border-red-500" : ""
+                    }`}
+                  >
+                    <SelectValue placeholder="Seleccione un microproceso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {microprocesos.map((mp) => (
+                      <SelectItem key={mp.id} value={mp.id}>
+                        {mp.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.microprocesoId && (
+                  <p className="text-sm text-red-500">Debe seleccionar un microproceso</p>
+                )}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              className="bg-orange-500 hover:bg-violet-900 text-white"
+            >
+              <UserPlus className="w-4 h-4 mr-2" />
+              Registrar Proceso
+            </Button>
+          </form>
+        </Card>
       </div>
     </div>
   );

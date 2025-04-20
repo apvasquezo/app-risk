@@ -1,74 +1,74 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { 
-  AlertCircle, 
-  FileText, 
-  AlertTriangle, 
-  Square, 
+import {
+  AlertCircle,
+  FileText,
+  AlertTriangle,
+  Square,
   Users,
   User,
   Rss,
   Bell,
   Shield,
-  ChartBarIcon
+  ChartBarIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Image from "next/image"
-import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import Image from "next/image";
+import UserMenu from "@/components/usermenu"; 
 
 const sidebarItems = [
   {
     title: "Usuarios",
     icon: User,
-    href: "/super/users"
+    href: "/super/users",
   },
   {
     title: "Personal",
     icon: Users,
-    href: "/super/personal"
+    href: "/super/personal",
   },
   {
     title: "Servicios y/o Productos",
     icon: AlertTriangle,
-    href: "/super/services"
+    href: "/super/services",
   },
   {
     title: "Canales",
     icon: Rss,
-    href: "/super/channels"
+    href: "/super/channels",
   },
   {
     title: "MacroProcesos",
     icon: Square,
-    href: "/super/macroprocess"
+    href: "/super/macroprocess",
   },
   {
     title: "Categoria de Riesgos",
     icon: Shield,
-    href: "/super/riskcategory"
+    href: "/super/riskcategory",
   },
   {
     title: "Tipo de Riesgos",
     icon: Shield,
-    href: "/super/typerisk"
+    href: "/super/typerisk",
   },
   {
     title: "Factores de Riesgo",
     icon: FileText,
-    href: "/super/riskfactor"
-  },  
+    href: "/super/riskfactor",
+  },
   {
     title: "Probabilidad e Impacto",
     icon: ChartBarIcon,
-    href: "/super/probability"
+    href: "/super/probability",
   },
   {
     title: "Tipo de Control",
-    icon: AlertCircle ,
-    href: "/super/typecontrol"
-  }
+    icon: AlertCircle,
+    href: "/super/typecontrol",
+  },
 ];
 
 export default function SuperLayout({
@@ -85,23 +85,21 @@ export default function SuperLayout({
         <div className="px-20 h-16 flex justify-between items-center">
           <div className="flex items-center space-x-4">
             <Image
-            src="/logo_orisk.png"
-            alt="O-Risk Logo"
-            width={125}
-            height={75}
-            className="h-auto w-full"
-            priority
+              src="/logo_orisk.png"
+              alt="O-Risk Logo"
+              width={125}
+              height={75}
+              className="h-auto w-full"
+              priority
             />
           </div>
           <div className="flex items-center space-x-4">
             <button className="p-2 hover:bg-gray-100 rounded-full">
               <Bell className="h-5 w-5 text-gray-600" />
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-full">
-              <Avatar>
-                <AvatarImage src="/user.gif" />
-              </Avatar> 
-            </button>           
+
+            {/* 👇 Aquí está tu menú de usuario */}
+            <UserMenu />
           </div>
         </div>
       </nav>
