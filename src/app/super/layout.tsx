@@ -29,6 +29,7 @@ const sidebarItems = [
     icon: Users,
     href: "/super/personal",
   },
+
   {
     title: "Servicios y/o Productos",
     icon: AlertTriangle,

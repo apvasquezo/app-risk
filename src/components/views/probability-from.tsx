@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
-import { Card } from "@/components/UI/card";
-import { Input } from "@/components/UI/input";
-import { Button } from "@/components/UI/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/UI/table";
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 
 interface Item {
