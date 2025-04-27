@@ -229,7 +229,7 @@ export default function EventManagement() {
     // Esta función simula el análisis de IA
     // En un entorno real, esto vendría de la respuesta de la API de IA
 
-    let suggestion = "# Plan de Acción Recomendado\n\n"
+    let suggestion = " Plan de Acción Recomendado\n\n"
 
     if (description.toLowerCase().includes("fraude") || factorRiesgo.includes("Fraude")) {
       suggestion += "## Acciones Inmediatas:\n"
