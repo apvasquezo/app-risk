@@ -97,7 +97,7 @@ export default function LoginForm() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="adriana"
+                  placeholder="Ingresa tu usuario"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
