@@ -237,7 +237,7 @@ export default function EventManagement() {
       suggestion += "2. Notificar a los clientes potencialmente afectados\n"
       suggestion += "3. Iniciar investigación interna con el equipo de seguridad\n\n"
 
-      suggestion += "## Acciones a Mediano Plazo:\n"
+      suggestion += " Acciones a Mediano Plazo:\n"
       suggestion += "1. Revisar y fortalecer los protocolos de verificación de identidad\n"
       suggestion += "2. Implementar sistemas de detección de fraude más robustos\n"
       suggestion += "3. Capacitar al personal en la identificación de intentos de fraude\n\n"
