@@ -11,6 +11,7 @@ import { Eye, EyeOff, Lock, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
+import axios from 'axios';
 
 export default function LoginForm() {
   const [username, setUsername] = useState("")
@@ -19,16 +20,39 @@ export default function LoginForm() {
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Aquí iría la lógica de autenticación
-    if (username === "admin" && password === "admin123") {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+  
+    try {
+      const response = await axios.post("http://localhost:8000/login", {
+        username,
+        password,
+      });
+  
+      const { access_token, role } = response.data;
+  
+      // Guardar el token en el almacenamiento local
+      localStorage.setItem("token", access_token);
+  
+      // Redirigir según el rol
+      switch (role) {
+        case "super":
+          router.push("/super");
+          break;
+        case "admin":
+          router.push("/admin");
+          break;
+        default:
+          router.push("/user");
+          break;
+      }
+  
       toast.success("Inicio de sesión exitoso");
-      router.push("/admin");
-    } else {
+    } catch (error: any) {
+      // Maneja errores de autenticación
+      console.error("Error en el inicio de sesión:", error.response?.data?.detail || error.message);
       toast.error("Credenciales inválidas");
-    }    
-    console.log({ username, password, rememberMe })
+    }
   }
 
   return (
@@ -66,14 +90,14 @@ export default function LoginForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-orange-100">
-                Correo electrónico
+                Nombre de usuario
               </Label>
               <div className="relative">
                 <User className="absolute left-3 top-3 h-5 w-5 text-[#b47de4]" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@ejemplo.com"
+                  id="username"
+                  type="text"
+                  placeholder="adriana"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   className="pl-10 border-[#d4b6f0] focus:border-[#9c44dc] focus:ring-[#9c44dc]"
