@@ -232,7 +232,7 @@ export default function EventManagement() {
     let suggestion = " Plan de Acción Recomendado\n\n"
 
     if (description.toLowerCase().includes("fraude") || factorRiesgo.includes("Fraude")) {
-      suggestion += "## Acciones Inmediatas:\n"
+      suggestion += " Acciones Inmediatas:\n"
       suggestion += "1. Bloquear temporalmente las cuentas o servicios afectados\n"
       suggestion += "2. Notificar a los clientes potencialmente afectados\n"
       suggestion += "3. Iniciar investigación interna con el equipo de seguridad\n\n"
