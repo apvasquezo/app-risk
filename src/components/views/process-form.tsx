@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { UserPlus, FolderKanban } from "lucide-react";
-import { Card } from "@/components/UI/card";
-import { Input } from "@/components/UI/input";
-import { Button } from "@/components/UI/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/UI/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Microproceso {
   id: string;
