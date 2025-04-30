@@ -250,12 +250,12 @@ export default function EventManagement() {
       description.toLowerCase().includes("tecnológ") ||
       factorRiesgo.includes("Tecnológicas")
     ) {
-      suggestion += " Acciones Inmediatas:\n"
+      suggestion += " git remote -vAcciones Inmediatas:\n"
       suggestion += "1. Implementar solución temporal o rollback a versión estable\n"
       suggestion += "2. Notificar a usuarios afectados sobre el incidente\n"
       suggestion += "3. Asignar equipo técnico para diagnóstico detallado\n\n"
 
-      suggestion += "## Acciones a Mediano Plazo:\n"
+      suggestion += " Acciones a Mediano Plazo:\n"
       suggestion += "1. Revisar y mejorar los procesos de pruebas antes de despliegues\n"
       suggestion += "2. Implementar monitoreo proactivo de sistemas críticos\n"
       suggestion += "3. Desarrollar plan de contingencia para fallos similares\n\n"
