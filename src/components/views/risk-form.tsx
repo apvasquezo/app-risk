@@ -242,7 +242,7 @@ export default function EventManagement() {
       suggestion += "2. Implementar sistemas de detección de fraude más robustos\n"
       suggestion += "3. Capacitar al personal en la identificación de intentos de fraude\n\n"
 
-      suggestion += "## Seguimiento:\n"
+      suggestion += " Seguimiento:\n"
       suggestion += "- Realizar auditoría completa de seguridad en 30 días\n"
       suggestion += "- Evaluar la efectividad de las medidas implementadas en 60 días"
     } else if (
