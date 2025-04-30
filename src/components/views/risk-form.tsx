@@ -250,7 +250,7 @@ export default function EventManagement() {
       description.toLowerCase().includes("tecnológ") ||
       factorRiesgo.includes("Tecnológicas")
     ) {
-      suggestion += "## Acciones Inmediatas:\n"
+      suggestion += " Acciones Inmediatas:\n"
       suggestion += "1. Implementar solución temporal o rollback a versión estable\n"
       suggestion += "2. Notificar a usuarios afectados sobre el incidente\n"
       suggestion += "3. Asignar equipo técnico para diagnóstico detallado\n\n"
