@@ -8,8 +8,6 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"
-
 import { Eye, EyeOff, Lock, User } from "lucide-react"
 
 import Link from "next/link"
@@ -20,6 +18,7 @@ import axios from 'axios';
 export default function LoginForm() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [role, setRole] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter();
@@ -35,15 +34,16 @@ export default function LoginForm() {
   
       const { access_token, role } = response.data;
   
-      // Guardar el token en el almacenamiento local
+      // Guardar el token y el rol en el almacenamiento local
       localStorage.setItem("token", access_token);
+      localStorage.setItem("role",role)
   
       // Redirigir según el rol
       switch (role) {
-        case "super":
+        case 1:
           router.push("/super");
           break;
-        case "admin":
+        case 2:
           router.push("/admin");
           break;
         default:
