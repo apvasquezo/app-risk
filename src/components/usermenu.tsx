@@ -1,14 +1,9 @@
-
 "use client";
 
 import { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // Importa useRouter para redirigir
-
-"use client"
-import { useState } from 'react';
-import { FaUserCircle } from 'react-icons/fa';
 
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
@@ -45,11 +40,7 @@ export default function UserMenu() {
       </div>
 
       {open && (
-
         <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-300 rounded-md shadow-md z-50 bg-transparent backdrop-blur-sm">
-
-        <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-400 rounded-md shadow-md z-50 backdrop-blur-sm">
-
           <button
             onClick={handleProfile}
             className="block w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-gray-100"
