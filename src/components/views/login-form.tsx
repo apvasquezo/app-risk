@@ -19,6 +19,7 @@ import axios from 'axios';
 export default function LoginForm() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
+  const [role, setRole] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter();
@@ -34,15 +35,16 @@ export default function LoginForm() {
   
       const { access_token, role } = response.data;
   
-      // Guardar el token en el almacenamiento local
+      // Guardar el token y el rol en el almacenamiento local
       localStorage.setItem("token", access_token);
+      localStorage.setItem("role",role)
   
       // Redirigir según el rol
       switch (role) {
-        case "super":
+        case 1:
           router.push("/super");
           break;
-        case "admin":
+        case 2:
           router.push("/admin");
           break;
         default:
