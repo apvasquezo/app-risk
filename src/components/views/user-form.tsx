@@ -212,7 +212,7 @@ export default function UserManagement() {
                   }
                   className="border-violet-200 focus:ring-violet-500 w-full rounded-md p-2"
                 >
-                  <option value="Supervisor">Supervisor</option>
+                  <option value="Supervisor">Administrador</option>
                   <option value="Administrador">Administrador</option>
                   <option value="Auxiliar">Auxiliar</option>
                 </select>

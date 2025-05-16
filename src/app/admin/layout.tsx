@@ -5,8 +5,12 @@ import {
   AlertCircle, 
   BarChart2, 
   FileText, 
-  AlertTriangle, 
-  List, 
+  AlertTriangle,
+  Cog,
+  ShieldCheck,
+  List,
+  NotebookPen,
+  Grid2x2Check,
   Settings, 
   HelpCircle,
   FileBarChart,
@@ -18,11 +22,7 @@ import Image from "next/image"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 const sidebarItems = [
-  {
-    title: "Dashboard",
-    icon: BarChart2,
-    href: "/admin"
-  },
+  
   {
     title: "Procesos",
     icon: List,
@@ -30,7 +30,7 @@ const sidebarItems = [
   },
   {
     title: "Riesgos",
-    icon: AlertTriangle,
+    icon: ShieldCheck,
     href: "/admin/risk"
   },
   {
@@ -40,7 +40,7 @@ const sidebarItems = [
   },
   {
     title: "Controles",
-    icon: AlertTriangle,
+    icon: Cog,
     href: "/admin/control"
   },
   {
@@ -54,9 +54,19 @@ const sidebarItems = [
     href: "/admin/plans"
   },
   {
-    title: "Reportes",
-    icon: FileText,
-    href: "/admin/reports"
+    title: "Evaluar Control",
+    icon: NotebookPen,
+    href: "/admin/eval"
+  },
+  {
+    title: "Matriz de Riesgo",
+    icon: Grid2x2Check,
+    href: "/admin/matrix"
+  },
+  {
+    title: "Dashboard",
+    icon: BarChart2,
+    href: "/admin"
   }
 ];
 

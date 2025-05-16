@@ -27,8 +27,8 @@ export default function Services() {
   const [errors, setErrors] = useState({ name: false });
 
   const [services, setServices] = useState<Service[]>([
-    { id: "1", name: "Servicio de limpieza" },
-    { id: "2", name: "Mantenimiento técnico" },
+    { id: "1", name: "Ahorro" },
+    { id: "2", name: "Crédito" },
   ]);
 
   const validateForm = () => {
@@ -112,7 +112,7 @@ export default function Services() {
               </label>
               <Input
                 required
-                placeholder="Ingrese el name del servicio"
+                placeholder="Ingrese el nombre del servicio"
                 value={formData.name}
                 onChange={(e) => {
                   setFormData({ name: e.target.value });
@@ -147,7 +147,7 @@ export default function Services() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">name</TableHead>
+                <TableHead className="bg-violet-50">Nombre</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>

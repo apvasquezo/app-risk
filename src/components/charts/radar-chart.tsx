@@ -6,23 +6,20 @@ import type { ApexOptions } from "apexcharts"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-export default function RadarChart() {
+interface RadarChartProps {
+  series: {
+    name: string
+    data: number[]
+  }[]
+  categories: string[]
+}
+
+export default function RadarChart({ series, categories }: RadarChartProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const series = [
-    {
-      name: "Current Year",
-      data: [80, 50, 30, 40, 100, 20],
-    },
-    {
-      name: "Previous Year",
-      data: [20, 30, 40, 80, 20, 80],
-    },
-  ]
 
   const options: ApexOptions = {
     chart: {
@@ -32,9 +29,9 @@ export default function RadarChart() {
       },
       background: "transparent",
     },
-    colors: ["#06B6D4", "#9333EA", "#EF4444"], 
+    colors: ["#06B6D4", "#9333EA", "#EF4444"],
     xaxis: {
-      categories: ["Speed", "Reliability", "Comfort", "Safety", "Efficiency", "Design"],
+      categories: categories,
     },
     yaxis: {
       show: false,
@@ -46,7 +43,7 @@ export default function RadarChart() {
       },
     },
     fill: {
-      opacity: 0.4, 
+      opacity: 0.4,
     },
     stroke: {
       width: 2,
@@ -64,4 +61,3 @@ export default function RadarChart() {
     </div>
   )
 }
-

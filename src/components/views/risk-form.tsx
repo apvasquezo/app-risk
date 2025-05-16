@@ -12,14 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog"
+import { ExportButtons } from "@/components/ui/export-buttons"
 
 interface EventEntry {
   id: string
@@ -92,10 +85,8 @@ export default function EventManagement() {
     estado: false,
   })
 
-  const [showAISuggestion, setShowAISuggestion] = useState(false)
-  const [aiSuggestion, setAiSuggestion] = useState("")
-  const [isLoadingAI, setIsLoadingAI] = useState(false)
-
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false)
+  const [isLoadingModal, setIsLoadingModal] = useState(false)
   const [eventEntries, setEventEntries] = useState<EventEntry[]>([
     {
       id: "1",
@@ -191,95 +182,6 @@ export default function EventManagement() {
       responsable: false,
       estado: false,
     })
-  }
-
-  const generateAISuggestion = async () => {
-    if (!formData.descripcion.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "El campo de descripción debe estar diligenciado para generar sugerencias.",
-      })
-      return
-    }
-
-    setIsLoadingAI(true)
-    setShowAISuggestion(true)
-
-    try {
-      // Simulación de llamada a la API de IA
-      // En un entorno real, aquí se haría la llamada a la API de IA
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Generar una sugerencia basada en la descripción y el factor de riesgo
-      const suggestion = generateSuggestionBasedOnDescription(formData.descripcion, formData.factorRiesgo)
-      setAiSuggestion(suggestion)
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "No se pudo generar la sugerencia. Intente nuevamente.",
-      })
-    } finally {
-      setIsLoadingAI(false)
-    }
-  }
-
-  const generateSuggestionBasedOnDescription = (description, factorRiesgo) => {
-    // Esta función simula el análisis de IA
-    // En un entorno real, esto vendría de la respuesta de la API de IA
-
-    let suggestion = " Plan de Acción Recomendado\n\n"
-
-    if (description.toLowerCase().includes("fraude") || factorRiesgo.includes("Fraude")) {
-      suggestion += " Acciones Inmediatas:\n"
-      suggestion += "1. Bloquear temporalmente las cuentas o servicios afectados\n"
-      suggestion += "2. Notificar a los clientes potencialmente afectados\n"
-      suggestion += "3. Iniciar investigación interna con el equipo de seguridad\n\n"
-
-      suggestion += "Acciones a Mediano Plazo:\n"
-      suggestion += "1. Revisar y fortalecer los protocolos de verificación de identidad\n"
-      suggestion += "2. Implementar sistemas de detección de fraude más robustos\n"
-      suggestion += "3. Capacitar al personal en la identificación de intentos de fraude\n\n"
-
-      suggestion += "Seguimiento:\n"
-      suggestion += "- Realizar auditoría completa de seguridad en 30 días\n"
-      suggestion += "- Evaluar la efectividad de las medidas implementadas en 60 días"
-    } else if (
-      description.toLowerCase().includes("sistema") ||
-      description.toLowerCase().includes("tecnológ") ||
-      factorRiesgo.includes("Tecnológicas")
-    ) {
-      suggestion += " Acciones Inmediatas:\n"
-      suggestion += "1. Implementar solución temporal o rollback a versión estable\n"
-      suggestion += "2. Notificar a usuarios afectados sobre el incidente\n"
-      suggestion += "3. Asignar equipo técnico para diagnóstico detallado\n\n"
-
-      suggestion += "## Acciones a Mediano Plazo:\n"
-      suggestion += "1. Revisar y mejorar los procesos de pruebas antes de despliegues\n"
-      suggestion += "2. Implementar monitoreo proactivo de sistemas críticos\n"
-      suggestion += "3. Desarrollar plan de contingencia para fallos similares\n\n"
-
-      suggestion += "## Seguimiento:\n"
-      suggestion += "- Realizar pruebas de carga y estrés en 15 días\n"
-      suggestion += "- Revisar arquitectura del sistema en 45 días"
-    } else {
-      suggestion += "## Acciones Recomendadas:\n"
-      suggestion += "1. Documentar detalladamente el incidente con todas las evidencias disponibles\n"
-      suggestion += "2. Realizar análisis de causa raíz con los equipos involucrados\n"
-      suggestion += "3. Desarrollar controles preventivos para evitar recurrencia\n\n"
-
-      suggestion += "## Plan de Mitigación:\n"
-      suggestion += "1. Revisar y actualizar políticas y procedimientos relacionados\n"
-      suggestion += "2. Capacitar al personal en las áreas identificadas como vulnerables\n"
-      suggestion += "3. Implementar controles adicionales en los procesos afectados\n\n"
-
-      suggestion += "## Seguimiento:\n"
-      suggestion += "- Evaluar la efectividad de las medidas en 30 días\n"
-      suggestion += "- Realizar auditoría de cumplimiento en 60 días"
-    }
-
-    return suggestion
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -679,19 +581,25 @@ export default function EventManagement() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={generateAISuggestion}
-                disabled={!formData.descripcion.trim()}
+                onClick={() => {
+                  setIsLoadingModal(true)
+                  setShowSuggestionModal(true)
+                  setTimeout(() => setIsLoadingModal(false), 1500)
+                }}
                 className="ml-auto text-emerald-600 border-emerald-600 hover:bg-emerald-50"
               >
                 <Lightbulb className="w-4 h-4 mr-2" />
-                Sugerir Plan de Acción
+                Sugerir Control
               </Button>
             </div>
           </form>
         </Card>
 
         <Card className="p-6 shadow-lg border-t-4 border-orange-500">
-          <h2 className="text-2xl font-semibold text-orange-900 mb-4">Listado de Riesgos</h2>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold text-orange-900">Listado de Riesgos</h2>
+            <ExportButtons data={eventEntries} fileName="listado-riesgos" />
+          </div>
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -755,33 +663,6 @@ export default function EventManagement() {
           </div>
         </Card>
       </div>
-      <Dialog open={showAISuggestion} onOpenChange={setShowAISuggestion}>
-        <DialogContent className="sm:max-w-[600px] border-t-4 border-orange-500 shadow-lg">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold text-orange-900">Sugerencia de Plan de Acción</DialogTitle>
-            <DialogDescription>
-              Recomendaciones generadas por IA basadas en la descripción del evento.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
-            {isLoadingAI ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-700"></div>
-                <p className="mt-4 text-violet-700">Generando sugerencias...</p>
-              </div>
-            ) : (
-              <div className="whitespace-pre-line prose prose-violet max-w-none">{aiSuggestion}</div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button onClick={() => setShowAISuggestion(false)} className="bg-violet-900 hover:bg-orange-500 text-white">
-              Grabar Sugerencia
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
-
-

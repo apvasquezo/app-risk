@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useEffect, useState } from "react"
@@ -7,23 +6,20 @@ import type { ApexOptions } from "apexcharts"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-export default function AreaChart() {
+interface AreaChartProps {
+  series: {
+    name: string
+    data: number[]
+  }[]
+  categories: string[]
+}
+
+export default function AreaChart({ series, categories }: AreaChartProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const series = [
-    {
-      name: "New Users",
-      data: [31, 40, 28, 51, 42, 109, 100],
-    },
-    {
-      name: "Returning Users",
-      data: [11, 32, 45, 32, 34, 52, 41],
-    },
-  ]
 
   const options: ApexOptions = {
     chart: {
@@ -33,7 +29,7 @@ export default function AreaChart() {
       },
       background: "transparent",
     },
-    colors: ["#40E0D0", "#8A2BE2", "#FF453A"], 
+    colors: ["#40E0D0", "#8A2BE2", "#FF453A"],
     dataLabels: {
       enabled: false,
     },
@@ -45,14 +41,14 @@ export default function AreaChart() {
       type: "gradient",
       gradient: {
         shadeIntensity: 1,
-        gradientToColors: ["#8A2BE2", "#FF453A"], 
+        gradientToColors: ["#8A2BE2", "#FF453A"],
         opacityFrom: 0.8,
         opacityTo: 0.4,
-        stops: [0, 50, 100], 
+        stops: [0, 50, 100],
       },
     },
     xaxis: {
-      categories: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+      categories: categories,
     },
     legend: {
       position: "top",
@@ -67,4 +63,3 @@ export default function AreaChart() {
     </div>
   )
 }
-

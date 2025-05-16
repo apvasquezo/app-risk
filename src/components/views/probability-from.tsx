@@ -121,7 +121,7 @@ export default function ProbabilityImpactForm() {
           <h1 className="text-3xl font-bold text-violet-900">Gestión de Probabilidad</h1>
           <Card className="p-6 shadow-lg border-t-4 border-violet-500 mt-4">
             <form onSubmit={(e) => handleSubmit(e, 'prob')} className="space-y-6">
-              {["Descripción", "Definición", "Criterio %"].map((label, index) => {
+              {["Nombre", "Descripción", "Criterio %"].map((label, index) => {
                 const key = ["description", "definition", "criterion"][index] as keyof typeof probForm;
                 return (
                   <div className="space-y-2" key={key}>
@@ -146,8 +146,8 @@ export default function ProbabilityImpactForm() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="bg-violet-50">Nombre</TableHead>
                   <TableHead className="bg-violet-50">Descripción</TableHead>
-                  <TableHead className="bg-violet-50">Definición</TableHead>
                   <TableHead className="bg-violet-50">Criterio %</TableHead>
                   <TableHead className="bg-violet-50">Acciones</TableHead>
                 </TableRow>
@@ -190,7 +190,7 @@ export default function ProbabilityImpactForm() {
           <h1 className="text-3xl font-bold text-violet-900">Gestión de Impacto</h1>
           <Card className="p-6 shadow-lg border-t-4 border-violet-500 mt-4">
             <form onSubmit={(e) => handleSubmit(e, 'impact')} className="space-y-6">
-              {["Descripción", "Definición", "Criterio SMLV"].map((label, index) => {
+              {["Nombre", "Descripción", "Criterio SMLV"].map((label, index) => {
                 const key = ["description", "definition", "criterion"][index] as keyof typeof impactForm;
                 return (
                   <div className="space-y-2" key={key}>
@@ -215,8 +215,8 @@ export default function ProbabilityImpactForm() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="bg-violet-50">Nombre</TableHead>
                   <TableHead className="bg-violet-50">Descripción</TableHead>
-                  <TableHead className="bg-violet-50">Definición</TableHead>
                   <TableHead className="bg-violet-50">Criterio SMLV</TableHead>
                   <TableHead className="bg-violet-50">Acciones</TableHead>
                 </TableRow>

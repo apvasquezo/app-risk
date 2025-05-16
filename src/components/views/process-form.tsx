@@ -125,9 +125,8 @@ export default function ProcessManagement() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <h1 className="text-3xl font-bold text-violet-900">Proceso</h1>
+        <h1 className="text-3xl font-bold text-violet-900">Procesos</h1>
         <p className="text-sm text-gray-600">
-          Un proceso es un conjunto de actividades planificadas que implican la participación de personas y recursos materiales coordinados para conseguir un objetivo previamente identificado.
         </p>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500 space-y-6">
@@ -173,10 +172,10 @@ export default function ProcessManagement() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Descripción <span className="text-red-500">*</span>
+                Nombre del Proceso <span className="text-red-500">*</span>
               </label>
               <Input
-                placeholder="Ingrese la descripción del proceso"
+                placeholder="Ingrese el nombre del proceso"
                 value={formData.description}
                 onChange={(e) => {
                   setFormData({ ...formData, description: e.target.value });
@@ -214,8 +213,8 @@ export default function ProcessManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">Microproceso</TableHead>
-                <TableHead className="bg-violet-50">Descripción</TableHead>
+                <TableHead className="bg-violet-50">Macroproceso</TableHead>
+                <TableHead className="bg-violet-50">Nombre del Proceso</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>
