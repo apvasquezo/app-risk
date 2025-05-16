@@ -2,29 +2,27 @@
 
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
+import type { ApexOptions } from "apexcharts"
 
-// Dynamically import ApexCharts to avoid SSR issues
+// Importar dinámicamente para evitar errores SSR
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-export default function LineChart() {
+interface LineChartProps {
+  series: {
+    name: string
+    data: number[]
+  }[]
+  categories: string[]
+}
+
+export default function LineChart({ series, categories }: LineChartProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const series = [
-    {
-      name: "Revenue",
-      data: [30, 40, 35, 50, 49, 60, 70, 91, 125, 150, 160, 180],
-    },
-    {
-      name: "Profit",
-      data: [15, 20, 25, 30, 35, 40, 45, 50, 60, 75, 80, 90],
-    },
-  ]
-
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: "line",
       toolbar: {
@@ -38,7 +36,7 @@ export default function LineChart() {
       width: 3,
     },
     xaxis: {
-      categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+      categories: categories,
     },
     legend: {
       position: "top",
@@ -52,7 +50,7 @@ export default function LineChart() {
 
   return (
     <div className="h-full w-full">
-      <ReactApexChart options={options as any} series={series} type="line" height="100%" />
+      <ReactApexChart options={options} series={series} type="line" height="100%" />
     </div>
   )
 }

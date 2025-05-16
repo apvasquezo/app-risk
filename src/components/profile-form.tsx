@@ -1,62 +1,39 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { FaUserCircle } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import type React from "react"
+
+import { useState } from "react"
+import { FaUserCircle } from "react-icons/fa"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
 
 export default function ProfileForm() {
   const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    address: "",
     username: "",
     role: "usuario", // Rol por defecto
+    avatar: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-    avatar: "",
-  });
-
-  const [error, setError] = useState(false);
+  })
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
+      const file = e.target.files[0]
+      const reader = new FileReader()
       reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result as string });
-      };
-      reader.readAsDataURL(file);
+        setFormData({ ...formData, avatar: reader.result as string })
+      }
+      reader.readAsDataURL(file)
     }
-  };
-
-  const validateForm = () => {
-    const hasError =
-      !formData.firstName ||
-      !formData.lastName ||
-      !formData.email ||
-      !formData.username ||
-      !formData.currentPassword ||
-      !formData.newPassword ||
-      formData.newPassword !== formData.confirmPassword;
-    setError(hasError);
-    return !hasError;
-  };
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      alert("Hay errores en el formulario.");
-      return;
-    }
-
-    // Aquí agregarías la lógica para guardar los datos del perfil, cambiar la contraseña, etc.
-    console.log("Perfil actualizado:", formData);
-  };
+    e.preventDefault()
+    // Aquí agregarías la lógica para guardar los datos del perfil
+    console.log("Perfil actualizado:", formData)
+  }
 
   return (
     <div className="min-h-screen p-8">
@@ -70,16 +47,18 @@ export default function ProfileForm() {
               <div className="relative w-32 h-32">
                 {formData.avatar ? (
                   <img
-                    src={formData.avatar}
+                    src={formData.avatar || "/placeholder.svg"}
                     alt="Avatar"
                     className="w-full h-full object-cover rounded-full border-4 border-violet-500 shadow-lg"
                   />
                 ) : (
-                  <FaUserCircle className="w-full h-full text-violet-700 rounded-full border-4 border-violet-500 shadow-lg" />
+                  <FaUserCircle className="w-full h-full text-violet-200 rounded-full border-4 border-violet-300 shadow-lg" />
                 )}
               </div>
               <Button variant="outline" className="text-violet-600 border-violet-600">
-                <label htmlFor="avatar-upload" className="cursor-pointer">Cambiar Avatar</label>
+                <label htmlFor="avatar-upload" className="cursor-pointer">
+                  Cambiar Avatar
+                </label>
                 <input
                   type="file"
                   id="avatar-upload"
@@ -90,64 +69,9 @@ export default function ProfileForm() {
               </Button>
             </div>
 
-            {/* Sección de Datos Personales */}
-            <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-violet-800">Datos Personales</h2>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Nombre</label>
-                <Input
-                  required
-                  placeholder="Ingrese su nombre"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Apellido</label>
-                <Input
-                  required
-                  placeholder="Ingrese su apellido"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Correo electrónico</label>
-                <Input
-                  required
-                  type="email"
-                  placeholder="Ingrese su correo electrónico"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Teléfono</label>
-                <Input
-                  placeholder="Ingrese su teléfono"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Dirección</label>
-                <Input
-                  placeholder="Ingrese su dirección"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
-            </div>
-
             {/* Sección de Datos del Usuario */}
             <div className="space-y-6">
-              <h2 className="text-2xl font-semibold text-violet-800">Datos de Usuario</h2>
+              <h2 className="text-2xl font-semibold text-orange-500">Datos de Usuario</h2>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">Nombre de usuario</label>
@@ -161,14 +85,14 @@ export default function ProfileForm() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">Rol</label>
-                <Input
-                  disabled
-                  value={formData.role}
-                  className="border-violet-200 focus:ring-violet-500 bg-gray-100"
-                />
+                <Input disabled value={formData.role} className="border-violet-200 focus:ring-violet-500 bg-gray-100" />
               </div>
+            </div>
 
-              {/* Cambio de Contraseña */}
+            {/* Cambio de Contraseña */}
+            <div className="space-y-6">
+              <h2 className="text-2xl font-semibold text-violet-800">Cambio de Contraseña</h2>
+
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">Contraseña actual</label>
                 <Input
@@ -208,5 +132,5 @@ export default function ProfileForm() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

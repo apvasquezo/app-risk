@@ -5,14 +5,19 @@ import dynamic from "next/dynamic"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-export default function PieChart() {
+interface PieChartProps {
+  labels: string[]
+  data: number[]
+}
+
+export default function PieChart({ labels, data }: PieChartProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const series = [44, 55, 13, 43, 22]
+  const series = data
 
   const options = {
     chart: {
@@ -20,7 +25,7 @@ export default function PieChart() {
       background: "transparent",
     },
     colors: ["#06B6D4", "#9333EA", "#EF4444", "#3B82F6", "#F97316"],
-    labels: ["Team A", "Team B", "Team C", "Team D", "Team E"],
+    labels: labels,
     legend: {
       position: "bottom",
     },
@@ -47,4 +52,3 @@ export default function PieChart() {
     </div>
   )
 }
-

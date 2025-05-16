@@ -102,7 +102,7 @@ export default function ControlTypes() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Descripción <span className="text-red-500">*</span>
+                Tipo de Control <span className="text-red-500">*</span>
               </label>
               <Input
                 required
@@ -137,7 +137,7 @@ export default function ControlTypes() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">Descripción</TableHead>
+                <TableHead className="bg-violet-50">Tipo de Control</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>

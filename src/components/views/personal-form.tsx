@@ -199,7 +199,7 @@ export default function Home() {
                 </label>
                 <Input
                   required
-                  placeholder="Ingrese el name"
+                  placeholder="Ingrese el nombre"
                   value={formData.name}
                   onChange={(e) => {
                     setFormData({ ...formData, name: e.target.value });
@@ -307,7 +307,7 @@ export default function Home() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Cédula</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">name</TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Nombre</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Cargo</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Área</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Correo</TableHead>

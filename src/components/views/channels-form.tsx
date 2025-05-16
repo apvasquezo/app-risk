@@ -27,8 +27,8 @@ export default function Channels() {
   const [errors, setErrors] = useState({ name: false });
 
   const [channels, setChannels] = useState<Channel[]>([
-    { id: "1", name: "Canal de Noticias" },
-    { id: "2", name: "Canal Deportivo" },
+    { id: "1", name: "Canal Presencial" },
+    { id: "2", name: "Canal Virtual" },
   ]);
 
   const validateForm = () => {
@@ -112,7 +112,7 @@ export default function Channels() {
               </label>
               <Input
                 required
-                placeholder="Ingrese el name del canal"
+                placeholder="Ingrese el nombre del canal"
                 value={formData.name}
                 onChange={(e) => {
                   setFormData({ name: e.target.value });
@@ -147,7 +147,7 @@ export default function Channels() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">name</TableHead>
+                <TableHead className="bg-violet-50">Nombre</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>

@@ -40,7 +40,9 @@ export default function UserMenu() {
       </div>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-40 bg-orange-10 border border-orange-300 rounded-md shadow-md z-50 bg-transparent backdrop-blur-sm">
+
+        <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-300 rounded-md shadow-md z-50 bg-transparent backdrop-blur-sm">
+
           <button
             onClick={handleProfile}
             className="block w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-gray-100"
@@ -58,21 +60,21 @@ export default function UserMenu() {
 
       {/* Modal de confirmación de cierre de sesión */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+        <div className="fixed inset-0 flex items-center justify-center z-50 ">
+          <div className="bg-white p-6 rounded-lg border border-violet-900 shadow-lg max-w-sm w-full">
             <h2 className="text-xl font-semibold text-center text-violet-900">
               ¿Estás seguro de que deseas cerrar sesión?
             </h2>
             <div className="flex justify-between mt-4 gap-2">
               <Button
                 onClick={cancelLogout}
-                className="bg-orange-500 text-white hover:bg-violet-600 w-1/2"
+                className="bg-orange-500 text-white hover:bg-violet-900 w-1/2"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={confirmLogout}
-                className="bg-orange-500 text-white hover:bg-violet-600 w-1/2"
+                className="bg-violet-900 text-white hover:bg-orange-500 w-1/2"
               >
                 Confirmar
               </Button>

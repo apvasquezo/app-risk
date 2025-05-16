@@ -6,6 +6,7 @@ import {
   FileText,
   AlertTriangle,
   Square,
+  Shapes,
   Users,
   User,
   Rss,
@@ -32,7 +33,7 @@ const sidebarItems = [
 
   {
     title: "Servicios y/o Productos",
-    icon: AlertTriangle,
+    icon: Shapes,
     href: "/super/services",
   },
   {
@@ -52,7 +53,7 @@ const sidebarItems = [
   },
   {
     title: "Tipo de Riesgos",
-    icon: Shield,
+    icon: AlertTriangle,
     href: "/super/typerisk",
   },
   {

@@ -157,7 +157,7 @@ export default function Macroprocess() {
                 </label>
                 <Input
                   required
-                  placeholder="Ingrese el name"
+                  placeholder="Ingrese el macroproceso"
                   value={formData.name}
                   onChange={(e) => {
                     setFormData({ ...formData, name: e.target.value });
@@ -233,7 +233,7 @@ export default function Macroprocess() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">name</TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Nombre</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Descripción</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Acciones</TableHead>
                   </TableRow>
