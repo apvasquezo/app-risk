@@ -115,7 +115,7 @@ export default function RiskFactors() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Factor de Riesgo <span className="text-red-500">*</span>
+                Tipo de Riesgo <span className="text-red-500">*</span>
               </label>
               <Select
                 onValueChange={(value) => {
@@ -129,7 +129,7 @@ export default function RiskFactors() {
                     errors.type ? "border-red-500" : "border-violet-200 focus:ring-violet-500"
                   } w-full rounded-md p-2 bg-white text-black`}
                 >
-                  <SelectValue placeholder="Seleccione un factor de riesgo" />
+                  <SelectValue placeholder="Seleccione un tipo de riesgo" />
                 </SelectTrigger>
                 <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
                   {predefinedRiskFactors.map((type) => (
@@ -150,7 +150,7 @@ export default function RiskFactors() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Descripción <span className="text-red-500">*</span>
+                Factor de Riesgo <span className="text-red-500">*</span>
               </label>
               <Input
                 required
@@ -189,8 +189,8 @@ export default function RiskFactors() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">Factor</TableHead>
-                <TableHead className="bg-violet-50">Descripción</TableHead>
+                <TableHead className="bg-violet-50">Tipo de Riesgo</TableHead>
+                <TableHead className="bg-violet-50">Factor de Riesgo</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>

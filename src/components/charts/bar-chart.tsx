@@ -2,28 +2,26 @@
 
 import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
+import type { ApexOptions } from "apexcharts"
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
-export default function BarChart() {
+interface BarChartProps {
+  series: {
+    name: string
+    data: number[]
+  }[]
+  categories: string[]
+}
+
+export default function BarChart({ series, categories }: BarChartProps) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const series = [
-    {
-      name: "Product A",
-      data: [44, 55, 57, 56, 61, 58],
-    },
-    {
-      name: "Product B",
-      data: [76, 85, 101, 98, 87, 105],
-    },
-  ]
-
-  const options = {
+  const options: ApexOptions = {
     chart: {
       type: "bar",
       toolbar: {
@@ -31,7 +29,7 @@ export default function BarChart() {
       },
       background: "transparent",
     },
-    colors: ["#06B6D4", "#9333EA", "#EF4444"], 
+    colors: ["#06B6D4", "#9333EA", "#EF4444"],
     plotOptions: {
       bar: {
         horizontal: false,
@@ -43,7 +41,7 @@ export default function BarChart() {
       enabled: false,
     },
     xaxis: {
-      categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
+      categories: categories,
     },
     legend: {
       position: "top",
@@ -54,10 +52,10 @@ export default function BarChart() {
         shade: "light",
         type: "vertical",
         shadeIntensity: 1,
-        gradientToColors: ["#9333EA", "#EF4444"], 
-        opacityFrom: 0.9, 
-        opacityTo: 0.3, 
-        stops: [0, 50, 100], 
+        gradientToColors: ["#9333EA", "#EF4444"],
+        opacityFrom: 0.9,
+        opacityTo: 0.3,
+        stops: [0, 50, 100],
       },
     },
   }
@@ -66,8 +64,7 @@ export default function BarChart() {
 
   return (
     <div className="h-full w-full">
-      <ReactApexChart options={options as any} series={series} type="bar" height="100%" />
+      <ReactApexChart options={options} series={series} type="bar" height="100%" />
     </div>
   )
 }
-

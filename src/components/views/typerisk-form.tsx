@@ -31,8 +31,8 @@ export default function RiskTypes() {
   const [errors, setErrors] = useState({ category: false, description: false });
 
   const [riskTypes, setRiskTypes] = useState<RiskType[]>([
-    { id: "1", category: "Operativos", description: "Fallas en procesos internos." },
-    { id: "2", category: "Crédito", description: "Incumplimiento de obligaciones financieras." },
+    { id: "1", category: "Operativo", description: "Fraude Interno." },
+    { id: "2", category: "Operativo", description: "Fraude Externo." },
   ]);
 
   const validateForm = () => {
@@ -150,11 +150,11 @@ export default function RiskTypes() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Descripción <span className="text-red-500">*</span>
+                Tipo de Riesgo <span className="text-red-500">*</span>
               </label>
               <Input
                 required
-                placeholder="Ingrese la descripción"
+                placeholder="Ingrese el tipo de riesgo"
                 value={formData.description}
                 onChange={(e) => {
                   setFormData({ ...formData, description: e.target.value });
@@ -190,7 +190,7 @@ export default function RiskTypes() {
             <TableHeader>
               <TableRow>
                 <TableHead className="bg-violet-50">Categoría</TableHead>
-                <TableHead className="bg-violet-50">Descripción</TableHead>
+                <TableHead className="bg-violet-50">Tipo de Riesgo</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>
