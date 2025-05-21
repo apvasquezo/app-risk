@@ -75,7 +75,7 @@ export default function Home() {
             onClick={() => router.push("/login")}
             className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-lg text-lg"
           >
-            Iniciar Sesión
+            Ingresar
           </Button>
         </div>
       </div>
