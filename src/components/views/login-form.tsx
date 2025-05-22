@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
-
+import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
 
 
@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import axios from 'axios';
 
 export default function LoginForm() {
+  const { setUser } = useAuth();
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -27,33 +28,32 @@ export default function LoginForm() {
     e.preventDefault();
   
     try {
-      const response = await axios.post("http://localhost:8000/login", {
+      const response = await axios.post("http://localhost:8000/auth/login", {
         username,
         password
       });
   
-      const { access_token, role_id } = response.data;
-      // Guardar el token y el rol en el almacenamiento local
+      const { access_token, role } = response.data;
       localStorage.setItem("token", access_token);
-      localStorage.setItem("role",role_id)
-      const role=localStorage.getItem("role")
-  
-      // Redirigir según el rol
+      localStorage.setItem("role",role)
+      setUser({ role });
+      console.log("este es mi rol", role)
       switch (role) {
-        case "1":
-          router.push("/super");
+        case "super":
+          //router.push("/super");
+          console.log("Redirigiendo a", role);
+          window.location.href = "/super";
           break;
-        case '2':
+        case "admin":
           router.push("/admin");
           break;
         default:
-          router.push("/user");
+          router.push("/login");
           break;
       }
   
       toast.success("Inicio de sesión exitoso");
     } catch (error: any) {
-      // Maneja errores de autenticación
       console.error("Error en el inicio de sesión:", error.response?.data?.detail || error.message);
       toast.error("Credenciales inválidas");
     }

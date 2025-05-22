@@ -27,7 +27,7 @@ export default function UserManagement() {
   const [formData, setFormData] = useState({
     usuario: "",
     contraseña: "",
-    rol: "Supervisor",
+    rol: "super",
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
