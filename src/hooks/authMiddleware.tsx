@@ -11,6 +11,7 @@ interface MiddlewareProps {
 const AuthMiddleware = ({ children, rolesAllowed }: MiddlewareProps) => {
   const { user } = useAuth();
   const router = useRouter();
+  
 
   useEffect(() => {
     if (!user || !rolesAllowed.includes(user.role)) {
