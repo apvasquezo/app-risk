@@ -1,29 +1,28 @@
 "use client";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 
 interface MiddlewareProps {
   children: React.ReactNode;
-  rolesAllowed: string[]; // Roles permitidos para acceder
+  rolesAllowed: string[];
 }
 
 const AuthMiddleware = ({ children, rolesAllowed }: MiddlewareProps) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
-  
 
   useEffect(() => {
-    if (!user || !rolesAllowed.includes(user.role)) {
-      // Redirige a la página principal si el usuario no tiene acceso
-      router.push("/");
+    if (!loading) {
+      if (!user || !rolesAllowed.includes(user.role)) {
+        router.push("/");
+      }
     }
-  }, [user, rolesAllowed, router]);
+  }, [user, rolesAllowed, router, loading]);
 
-  // Muestra el contenido solo si el usuario está autenticado y tiene el rol permitido
-  if (!user || !rolesAllowed.includes(user.role)) {
-    return null; // Puedes mostrar un loader o mensaje de espera aquí
-  }
+  if (loading) return <div>Cargando...</div>;
+
+  if (!user || !rolesAllowed.includes(user.role)) return null;
 
   return <>{children}</>;
 };

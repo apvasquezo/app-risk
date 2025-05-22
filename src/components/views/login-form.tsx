@@ -19,7 +19,6 @@ import axios from 'axios';
 export default function LoginForm() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const [role, setRole] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
   const router = useRouter();
@@ -30,21 +29,21 @@ export default function LoginForm() {
     try {
       const response = await axios.post("http://localhost:8000/login", {
         username,
-        password,
+        password
       });
   
-      const { access_token, role } = response.data;
-  
+      const { access_token, role_id } = response.data;
       // Guardar el token y el rol en el almacenamiento local
       localStorage.setItem("token", access_token);
-      localStorage.setItem("role",role)
+      localStorage.setItem("role",role_id)
+      const role=localStorage.getItem("role")
   
       // Redirigir según el rol
       switch (role) {
-        case 1:
+        case "1":
           router.push("/super");
           break;
-        case 2:
+        case '2':
           router.push("/admin");
           break;
         default:
