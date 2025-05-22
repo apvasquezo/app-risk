@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import UserMenu from "@/components/usermenu"; 
+import UserMenu from "@/components/views/usermenu"; 
 
 const sidebarItems = [
   {

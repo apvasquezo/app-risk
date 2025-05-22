@@ -15,16 +15,17 @@ const AuthMiddleware = ({ children, rolesAllowed }: MiddlewareProps) => {
   useEffect(() => {
     if (!loading) {
       if (!user || !rolesAllowed.includes(user.role)) {
-        router.push("/");
+        router.replace("/"); // Redirige si no está autorizado
       }
     }
-  }, [user, rolesAllowed, router, loading]);
+  }, [user, loading, rolesAllowed, router]);
 
-  if (loading) return <div>Cargando...</div>;
-
-  if (!user || !rolesAllowed.includes(user.role)) return null;
+  if (loading || !user || !rolesAllowed.includes(user.role)) {
+    return <div>Cargando...</div>;
+  }
 
   return <>{children}</>;
 };
 
 export default AuthMiddleware;
+
