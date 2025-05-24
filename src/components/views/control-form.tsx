@@ -7,10 +7,18 @@ import { Edit3, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { transformControls } from "@/lib/transformers"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-
+import api from "@/lib/axios";
 interface Control {
   id: string
   tipoControl: string
@@ -18,9 +26,6 @@ interface Control {
   frecuencia: string
   responsable: string
 }
-
-const frecuenciaOptions = ["Diaria", "Semanal", "Quincenal", "Mensual", "Trimestral", "Semestral", "Anual"]
-const tipoControlOptions = ["Preventivo", "Detectivo", "Correctivo", "Directivo", "Compensatorio"]
 
 export default function ControlManagementForm() {
   const { toast } = useToast()
@@ -42,15 +47,7 @@ export default function ControlManagementForm() {
     responsable: false,
   })
 
-  const [controlList, setControlList] = useState<Control[]>([
-    {
-      id: "1",
-      tipoControl: "Preventivo",
-      descripcion: "Revisión de equipos",
-      frecuencia: "Mensual",
-      responsable: "Departamento de Mantenimiento",
-    },
-  ])
+  const [controlList, setControlList] = useState<Control[]>([])
 
   const validateForm = () => {
     const newErrors = {
