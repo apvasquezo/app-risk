@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
 import axios from 'axios';
 
 interface User {
@@ -43,8 +42,21 @@ export default function UserManagement() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const response = await axios.get("http://localhost:8000/users");
-        setUsers(response.data); // Asumiendo que response.data es un array de usuarios
+        const token = localStorage.getItem("token"); 
+        const response = await axios.get("http://localhost:8000/users", {
+          headers: {
+            Authorization: `Bearer ${token}`, 
+          },
+        });
+        const rawUsers = response.data;
+        const transformedUsers = rawUsers.map((user: any) => ({
+          id: user.id_user,
+          usuario: user.username,
+          contraseña: "",
+          rol: user.role_id === 1 ? "super" : "admin",
+        }));
+
+        setUsers(transformedUsers);
       } catch (error) {
         toast({
           variant: "destructive",
@@ -92,13 +104,30 @@ export default function UserManagement() {
       return;
     }
   
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast({
+        variant: "destructive",
+        title: "No autorizado",
+        description: "No se encontró un token de autenticación.",
+      });
+      return;
+    }
+  
     try {
+      const payload = {
+        username: formData.usuario,
+        password: formData.contraseña,
+        role_id: formData.rol === "super" ? 1 : 2 
+      };
+      console.log ("payload", payload)
       if (editingId) {
         // Actualización (PUT)
-        await axios.put(`http://localhost:8000/users/${editingId}`, {
-          usuario: formData.usuario,
-          contraseña: formData.contraseña,
-          rol: formData.rol,
+        console.log("user_id ", editingId)
+        await axios.put(`http://localhost:8000/users/${editingId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
   
         setUsers(users.map(user =>
@@ -109,16 +138,24 @@ export default function UserManagement() {
           title: "Usuario actualizado",
           description: "Los datos del usuario han sido actualizados exitosamente.",
         });
+  
       } else {
         // Registro (POST)
-        const response = await axios.post("http://localhost:8000/users", {
-          usuario: formData.usuario,
-          contraseña: formData.contraseña,
-          rol: formData.rol,
+        const response = await axios.post("http://localhost:8000/users", payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         });
   
-        const newUser = response.data;
-        setUsers([...users, newUser]);
+        const rawUser = response.data;
+        const formattedUser = {
+          id: rawUser.id_user,
+          usuario: rawUser.username,
+          contraseña: "", 
+          rol: rawUser.role_id === 1 ? "super" : "admin" 
+        };
+        
+        setUsers([...users, formattedUser]);
   
         toast({
           title: "Usuario registrado",
@@ -127,14 +164,17 @@ export default function UserManagement() {
       }
   
       resetForm();
-    } catch (error) {
+  
+    } catch (error: any) {
+      console.error("Error al procesar usuario:", error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Ocurrió un error al procesar la solicitud.",
+        description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
       });
     }
   };
+  
 
   const handleEdit = (user: User) => {
     setFormData(user);
@@ -144,7 +184,13 @@ export default function UserManagement() {
 
   const handleDelete = async (id: string) => {
     try {
-      await axios.delete(`http://localhost:8000/users/${id}`);
+      const token = localStorage.getItem("token");
+      await axios.delete(`http://localhost:8000/users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+  
       setUsers(users.filter(user => user.id !== id));
       if (editingId === id) resetForm();
   
@@ -159,6 +205,7 @@ export default function UserManagement() {
         description: "Ocurrió un error al eliminar el usuario.",
       });
     }
+  
   };
   
 
@@ -227,9 +274,8 @@ export default function UserManagement() {
                   }
                   className="border-violet-200 focus:ring-violet-500 w-full rounded-md p-2"
                 >
-                  <option value="Supervisor">Administrador</option>
-                  <option value="Administrador">Administrador</option>
-                  <option value="Auxiliar">Auxiliar</option>
+                  <option value="super">super</option>
+                  <option value="admin">admin</option>
                 </select>
               </div>
             </div>
