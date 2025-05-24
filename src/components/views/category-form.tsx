@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformCategories } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -14,9 +15,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface RiskCategory {
-  id: string;
+  id_category: string;
   name: string;
 }
 
@@ -25,11 +27,23 @@ export default function RiskCategories() {
   const [formData, setFormData] = useState({ name: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ name: false });
+  const [categories, setCategory] = useState<RiskCategory[]>([]);
 
-  const [categories, setCategories] = useState<RiskCategory[]>([
-    { id: "1", name: "Riesgo Operativo" },
-    { id: "2", name: "Riesgo Financiero" },
-  ]);
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await api.get("/risk-categories");
+        setCategory(transformCategories(response.data));
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error al cargar categorías",
+          description: "No se pudo obtener el listado de categorías.",
+        });
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const validateForm = () => {
     const newErrors = { name: !formData.name.trim() };
@@ -53,28 +67,36 @@ export default function RiskCategories() {
       });
       return;
     }
-
     try {
       if (editingId) {
-        setCategories(
-          categories.map((category) =>
-            category.id === editingId ? { ...formData, id: editingId } : category
+        await api.put(`/risk-categories/${editingId}`, {
+          description: formData.name,
+        });
+        setCategory(
+          categories.map((cat) =>
+            cat.id_category === editingId ? { ...cat, name: formData.name } : cat
           )
         );
         toast({
           title: "Categoría actualizada",
-          description: "La categoría ha sido actualizada exitosamente.",
+          description: "La categoría fue actualizada correctamente.",
         });
       } else {
-        const newCategory = { ...formData, id: Date.now().toString() };
-        setCategories([...categories, newCategory]);
+        const response = await api.post("/risk-categories", {
+          description: formData.name,
+        });
+        const newCategory = {
+          id_category: response.data.id_category,
+          name: response.data.description,
+        };
+        setCategory([...categories, newCategory]);
         toast({
           title: "Categoría registrada",
-          description: "La nueva categoría ha sido registrada exitosamente.",
+          description: "La nueva categoría fue registrada correctamente.",
         });
       }
       resetForm();
-    } catch {
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -84,17 +106,26 @@ export default function RiskCategories() {
   };
 
   const handleEdit = (category: RiskCategory) => {
-    setFormData(category);
-    setEditingId(category.id);
+    setFormData({ name: category.name });
+    setEditingId(category.id_category);
   };
 
-  const handleDelete = (id: string) => {
-    setCategories(categories.filter((category) => category.id !== id));
-    toast({
-      title: "Categoría eliminada",
-      description: "La categoría ha sido eliminada exitosamente.",
-    });
-    if (editingId === id) resetForm();
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/risk-categories/${id}`);
+      setCategory(categories.filter((cat) => cat.id_category !== id));
+      toast({
+        title: "Categoría eliminada",
+        description: "La categoría ha sido eliminada exitosamente.",
+      });
+      if (editingId === id) resetForm();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar la categoría.",
+      });
+    }
   };
 
   return (
@@ -126,19 +157,21 @@ export default function RiskCategories() {
                 <p className="text-sm text-red-500">Este campo es obligatorio</p>
               )}
             </div>
-            <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
-              {editingId ? "Actualizar Categoría" : "Registrar Categoría"}
-            </Button>
-            {editingId && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetForm}
-                className="text-violet-600 border-violet-600"
-              >
-                Cancelar
+            <div className="flex gap-4">
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
+                {editingId ? "Actualizar Categoría" : "Registrar Categoría"}
               </Button>
-            )}
+              {editingId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="text-violet-600 border-violet-600"
+                >
+                  Cancelar
+                </Button>
+              )}
+            </div>
           </form>
         </Card>
 
@@ -153,7 +186,7 @@ export default function RiskCategories() {
             </TableHeader>
             <TableBody>
               {categories.map((category) => (
-                <TableRow key={category.id} className="hover:bg-violet-50">
+                <TableRow key={category.id_category} className="hover:bg-violet-50">
                   <TableCell>{category.name}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
@@ -169,7 +202,7 @@ export default function RiskCategories() {
                         size="sm"
                         variant="outline"
                         className="text-orange-600 border-orange-600"
-                        onClick={() => handleDelete(category.id)}
+                        onClick={() => handleDelete(category.id_category)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

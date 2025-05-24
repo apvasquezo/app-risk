@@ -15,7 +15,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/context/AuthContext";
 import axios from 'axios';
 
 interface User {
@@ -56,7 +55,7 @@ export default function UserManagement() {
           contraseña: "",
           rol: user.role_id === 1 ? "super" : "admin",
         }));
-        console.log("Usuarios transformados:", transformedUsers);
+
         setUsers(transformedUsers);
       } catch (error) {
         toast({
@@ -119,11 +118,12 @@ export default function UserManagement() {
       const payload = {
         username: formData.usuario,
         password: formData.contraseña,
-        role_id: formData.rol === "super" ? 1 : 2 // Ajusta según IDs reales
+        role_id: formData.rol === "super" ? 1 : 2 
       };
-      console.log ("envia ", payload)
+      console.log ("payload", payload)
       if (editingId) {
         // Actualización (PUT)
+        console.log("user_id ", editingId)
         await axios.put(`http://localhost:8000/users/${editingId}`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -147,16 +147,15 @@ export default function UserManagement() {
           },
         });
   
-        const newUser = response.data;
-
-        const transformedUser = {
-        id: newUser.id_user,
-        usuario: newUser.username,
-        contraseña: "",
-        rol: newUser.role_id === 1 ? "super" : "admin", // ajustar según tus IDs reales
+        const rawUser = response.data;
+        const formattedUser = {
+          id: rawUser.id_user,
+          usuario: rawUser.username,
+          contraseña: "", 
+          rol: rawUser.role_id === 1 ? "super" : "admin" 
         };
-
-        setUsers([...users, transformedUser]);
+        
+        setUsers([...users, formattedUser]);
   
         toast({
           title: "Usuario registrado",
@@ -186,11 +185,12 @@ export default function UserManagement() {
   const handleDelete = async (id: string) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:8000/users/${id}`,{
+      await axios.delete(`http://localhost:8000/users/${id}`, {
         headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          Authorization: `Bearer ${token}`,
+        },
       });
+  
       setUsers(users.filter(user => user.id !== id));
       if (editingId === id) resetForm();
   
@@ -205,6 +205,7 @@ export default function UserManagement() {
         description: "Ocurrió un error al eliminar el usuario.",
       });
     }
+  
   };
   
 
