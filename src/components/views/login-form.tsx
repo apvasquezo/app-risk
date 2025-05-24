@@ -34,6 +34,7 @@ export default function LoginForm() {
       });
   
       const { access_token, role } = response.data;
+      console.log ("No hay usuarios",response.data)
   
       // Guardar el token y el rol en el almacenamiento local
       localStorage.setItem("token", access_token);
