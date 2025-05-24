@@ -1,80 +1,23 @@
 "use client";
 
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-} from "react";
+import { createContext, useContext } from "react";
 
-// Definición de usuario (puedes ampliarlo si lo necesitas)
-interface User {
-  username: string;
-  role: number;
-  exp?: number; // Expiración del token (opcional)
+// Define la estructura del usuario
+export interface User {
+  role: string;
 }
 
-// Tipo del contexto
-interface AuthContextType {
+// Define los tipos para el contexto
+export interface AuthContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  logout: () => void;
+  loading: boolean;
 }
 
-// Crear el contexto
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Crea el contexto
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Props para el proveedor
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  // Función para cerrar sesión (puedes reutilizarla desde un botón)
-  const logout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("role");
-    setUser(null);
-  };
-
-  // Cargar usuario desde el token al iniciar
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-
-        // Comprobar si el token expiró (opcional)
-        const isExpired =
-          payload.exp && Date.now() >= payload.exp * 1000;
-
-        if (isExpired) {
-          logout(); // Eliminar si está vencido
-        } else {
-          setUser({
-            username: payload.sub,
-            role: payload.role,
-            exp: payload.exp,
-          });
-        }
-      } catch (err) {
-        console.error("Error decodificando token:", err);
-        logout();
-      }
-    }
-  }, []);
-
-  return (
-    <AuthContext.Provider value={{ user, setUser, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
-// Hook para consumir el contexto
+// Hook personalizado para consumir el contexto
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

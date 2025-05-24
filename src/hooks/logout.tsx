@@ -1,22 +1,19 @@
 "use client";
 
-import { useContext } from "react";
-import { AuthProvider } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
-export default function Navbar() {
-  //const { role, token, logout } = useContext(AuthProvider);
+export const LogoutButton = () => {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    router.push("/login");
+  };
 
   return (
-    <nav>
-      <h1>App Name</h1>
-      {token ? (
-        <>
-          <p>Welcome, {role}!</p>
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        <p>Please log in</p>
-      )}
-    </nav>
+    <button onClick={handleLogout} className="text-red-500">
+      Cerrar sesión
+    </button>
   );
-}
+};

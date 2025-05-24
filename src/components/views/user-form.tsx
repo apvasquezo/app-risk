@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
+import axios from 'axios';
 
 interface User {
   id: string;
@@ -27,31 +30,32 @@ export default function UserManagement() {
   const [formData, setFormData] = useState({
     usuario: "",
     contraseña: "",
-    rol: "Supervisor",
+    rol: "super",
   });
 
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [errors, setErrors] = useState({
     usuario: false,
     contraseña: false,
   });
+  const [users, setUsers] = useState<User[]>([]);
 
-  // Temporary mock data - will be replaced with API data
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: "1",
-      usuario: "admin",
-      contraseña: "admin123",
-      rol: "Administrador",
-    },
-    {
-      id: "2",
-      usuario: "auxiliar1",
-      contraseña: "aux123",
-      rol: "Auxiliar",
-    },
-  ]);
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/users");
+        setUsers(response.data); // Asumiendo que response.data es un array de usuarios
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error al cargar usuarios",
+          description: "No se pudo obtener el listado de usuarios desde el servidor.",
+        });
+      }
+    };
+  
+    fetchUsers();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {
@@ -78,7 +82,7 @@ export default function UserManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -87,31 +91,41 @@ export default function UserManagement() {
       });
       return;
     }
-
+  
     try {
       if (editingId) {
-        // Update existing user
-        setUsers(users.map(user => 
-          user.id === editingId 
-            ? { ...formData, id: editingId }
-            : user
+        // Actualización (PUT)
+        await axios.put(`http://localhost:8000/users/${editingId}`, {
+          usuario: formData.usuario,
+          contraseña: formData.contraseña,
+          rol: formData.rol,
+        });
+  
+        setUsers(users.map(user =>
+          user.id === editingId ? { ...formData, id: editingId } : user
         ));
+  
         toast({
           title: "Usuario actualizado",
           description: "Los datos del usuario han sido actualizados exitosamente.",
         });
       } else {
-        // Add new user
-        const newUser = {
-          ...formData,
-          id: Date.now().toString(), // Temporary ID generation
-        };
+        // Registro (POST)
+        const response = await axios.post("http://localhost:8000/users", {
+          usuario: formData.usuario,
+          contraseña: formData.contraseña,
+          rol: formData.rol,
+        });
+  
+        const newUser = response.data;
         setUsers([...users, newUser]);
+  
         toast({
           title: "Usuario registrado",
           description: "El nuevo usuario ha sido registrado exitosamente.",
         });
       }
+  
       resetForm();
     } catch (error) {
       toast({
@@ -128,12 +142,12 @@ export default function UserManagement() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     try {
+      await axios.delete(`http://localhost:8000/users/${id}`);
       setUsers(users.filter(user => user.id !== id));
-      if (editingId === id) {
-        resetForm();
-      }
+      if (editingId === id) resetForm();
+  
       toast({
         title: "Usuario eliminado",
         description: "El usuario ha sido eliminado exitosamente.",
@@ -146,6 +160,7 @@ export default function UserManagement() {
       });
     }
   };
+  
 
   return (
     <div className="min-h-screen p-8">
