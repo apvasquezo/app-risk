@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformChannels } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -14,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface Channel {
   id: string;
@@ -25,11 +27,24 @@ export default function Channels() {
   const [formData, setFormData] = useState({ name: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ name: false });
+  const [channels, setChannels] = useState<Channel[]>([]);
 
-  const [channels, setChannels] = useState<Channel[]>([
-    { id: "1", name: "Canal Presencial" },
-    { id: "2", name: "Canal Virtual" },
-  ]);
+  useEffect(() => {
+    const fetchChannels = async () => {
+      try {
+        const response = await api.get("/channels" );
+        setChannels(transformChannels(response.data));
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar canales",
+          description: "No se pudo obtener el listado de canales desde el servidor.",
+        });
+      }
+    };
+    fetchChannels();
+  }, []);
 
   const validateForm = () => {
     const newErrors = { name: !formData.name.trim() };
@@ -53,12 +68,14 @@ export default function Channels() {
       });
       return;
     }
-
     try {
       if (editingId) {
-        setChannels(
-          channels.map((channel) =>
-            channel.id === editingId ? { ...formData, id: editingId } : channel
+        await api.put(`/channels/${editingId}`, {
+          description: formData.name,
+        });
+        setChannels((prev) =>
+          prev.map((ch) =>
+            ch.id === editingId ? { id: editingId, name: formData.name } : ch
           )
         );
         toast({
@@ -66,7 +83,13 @@ export default function Channels() {
           description: "El canal ha sido actualizado exitosamente.",
         });
       } else {
-        const newChannel = { ...formData, id: Date.now().toString() };
+        const response = await api.post("/channels", { 
+            description: formData.name 
+          });
+        const newChannel = {
+          id: response.data.id_channel,
+          name: response.data.description,
+        };
         setChannels([...channels, newChannel]);
         toast({
           title: "Canal registrado",
@@ -74,7 +97,8 @@ export default function Channels() {
         });
       }
       resetForm();
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -84,17 +108,27 @@ export default function Channels() {
   };
 
   const handleEdit = (channel: Channel) => {
-    setFormData(channel);
+    setFormData({ name: channel.name });
     setEditingId(channel.id);
   };
 
-  const handleDelete = (id: string) => {
-    setChannels(channels.filter((channel) => channel.id !== id));
-    toast({
-      title: "Canal eliminado",
-      description: "El canal ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/channels/${id}`); 
+      setChannels(channels.filter((ch) => ch.id !== id)); 
+      toast({
+        title: "Canal eliminado",
+        description: "El canal ha sido eliminado exitosamente.",
+      });  
+      if (editingId === id) resetForm();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el canal.",
+      });
+    }
   };
 
   return (
@@ -126,19 +160,21 @@ export default function Channels() {
                 <p className="text-sm text-red-500">Este campo es obligatorio</p>
               )}
             </div>
-            <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
-              {editingId ? "Actualizar Canal" : "Registrar Canal"}
-            </Button>
-            {editingId && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetForm}
-                className="text-violet-600 border-violet-600"
-              >
-                Cancelar
+            <div className="flex gap-4">
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
+                {editingId ? "Actualizar Canal" : "Registrar Canal"}
               </Button>
-            )}
+              {editingId && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={resetForm}
+                  className="text-violet-600 border-violet-600"
+                >
+                  Cancelar
+                </Button>
+              )}
+            </div>
           </form>
         </Card>
 

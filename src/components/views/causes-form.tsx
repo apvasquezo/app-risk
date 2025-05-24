@@ -1,105 +1,164 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { transformCauses } from "@/lib/transformers"
+import { transformConsequences } from "@/lib/transformers"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast"
+import api from "@/lib/axios";
 
-interface Item {
-  id: string
+interface Cause {
+  id: number
+  description: string
+}
+
+interface Consequence {
+  id: number
   description: string
 }
 
 export default function CausesConsequencesForm() {
   const { toast } = useToast()
-
   const [causeForm, setCauseForm] = useState({ description: "" })
   const [consequenceForm, setConsequenceForm] = useState({ description: "" })
+  const [editingCauseId, setEditingCauseId] = useState<number | null>(null)
+  const [editingConsequenceId, setEditingConsequenceId] = useState<number | null>(null)
+  const [causeList, setCauseList] = useState<Cause[]>([])
+  const [consequenceList, setConsequenceList] = useState<Consequence[]>([])
 
-  const [causeList, setCauseList] = useState<Item[]>([
-    {
-      id: "1",
-      description: "Falta de mantenimiento preventivo",
-    },
-  ])
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [causeRes, consequenceRes] = await Promise.all([
+          api.get("/causes"),
+          api.get("/consequences")
+        ])
+        setCauseList(transformCauses(causeRes.data));
+        setConsequenceList(transformConsequences(consequenceRes.data));
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Error al cargar datos",
+          description: "No se pudieron obtener las causas o consecuencias."
+        })
+      }
+    }
+    fetchData()
+  }, [])
 
-  const [consequenceList, setConsequenceList] = useState<Item[]>([
-    {
-      id: "1",
-      description: "Pérdida de productividad",
-    },
-  ])
-
-  const [editingCauseId, setEditingCauseId] = useState<string | null>(null)
-  const [editingConsequenceId, setEditingConsequenceId] = useState<string | null>(null)
-
-  const isEditing = (id: string, type: "cause" | "consequence") =>
-    type === "cause" ? editingCauseId === id : editingConsequenceId === id
-
-  const handleSubmit = (e: React.FormEvent, type: "cause" | "consequence") => {
+  const handleSubmit = async (
+    e: React.FormEvent,
+    type: "cause" | "consequence"
+  ) => {
     e.preventDefault()
     const form = type === "cause" ? causeForm : consequenceForm
-    const setList = type === "cause" ? setCauseList : setConsequenceList
-    const list = type === "cause" ? causeList : consequenceList
-    const setForm = type === "cause" ? setCauseForm : setConsequenceForm
     const editingId = type === "cause" ? editingCauseId : editingConsequenceId
-    const setEditingId = type === "cause" ? setEditingCauseId : setEditingConsequenceId
 
-    if (!form.description) {
+    if (!form.description.trim()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "El campo descripción es obligatorio.",
+        description: "La descripción es obligatoria."
       })
       return
     }
 
-    if (editingId) {
-      setList(list.map((item) => (item.id === editingId ? { ...form, id: editingId } : item)))
+    try {
+      if (editingId !== null) {
+        await api.put(
+          `/${type === "cause" ? "causes" : "consequences"}/${editingId}`,
+          { description: form.description },
+        )
+        if (type === "cause") {
+          setCauseList(prev =>
+            prev.map(item =>
+              item.id === editingId ? { ...item, description: form.description } : item
+            )
+          )
+          setEditingCauseId(null)
+        } else {
+          setConsequenceList(prev =>
+            prev.map(item =>
+              item.id === editingId ? { ...item, description: form.description } : item
+            )
+          )
+          setEditingConsequenceId(null)
+        }
+        toast({
+          title: "Actualización exitosa",
+          description: `${type === "cause" ? "Causa" : "Consecuencia"} actualizada correctamente.`
+        })
+      } else {
+        const res = await api.post(
+          `/${type === "cause" ? "causes" : "consequences"}`,
+          { description: form.description },
+        )
+        const newItem = {
+          id: res.data.id_cause || res.data.id_consequence,
+          description: res.data.description
+        }
+        if (type === "cause") setCauseList(prev => [...prev, newItem])
+        else setConsequenceList(prev => [...prev, newItem])
+        toast({
+          title: "Registro exitoso",
+          description: `${type === "cause" ? "Causa" : "Consecuencia"} registrada.`
+        })
+      }
+      if (type === "cause") setCauseForm({ description: "" })
+      else setConsequenceForm({ description: "" })
+    } catch (error) {
       toast({
-        title: `${type === "cause" ? "Causa" : "Consecuencia"} actualizada`,
-        description: "Se actualizó correctamente.",
-      })
-    } else {
-      setList([...list, { ...form, id: Date.now().toString() }])
-      toast({
-        title: `${type === "cause" ? "Causa" : "Consecuencia"} registrada`,
-        description: "Se ha registrado exitosamente.",
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudo procesar la solicitud."
       })
     }
-
-    setForm({ description: "" })
-    setEditingId(null)
   }
 
-  const handleEdit = (item: Item, type: "cause" | "consequence") => {
+  const handleEdit = (item: Cause | Consequence, type: "cause" | "consequence") => {
     if (type === "cause") {
-      setCauseForm(item)
+      setCauseForm({ description: item.description })
       setEditingCauseId(item.id)
     } else {
-      setConsequenceForm(item)
+      setConsequenceForm({ description: item.description })
       setEditingConsequenceId(item.id)
     }
   }
 
-  const handleDelete = (id: string, type: "cause" | "consequence") => {
-    const setList = type === "cause" ? setCauseList : setConsequenceList
-    const list = type === "cause" ? causeList : consequenceList
-    setList(list.filter((item) => item.id !== id))
-
-    if ((type === "cause" && editingCauseId === id) || (type === "consequence" && editingConsequenceId === id)) {
-      type === "cause" ? setEditingCauseId(null) : setEditingConsequenceId(null)
+  const handleDelete = async (id: number, type: "cause" | "consequence") => {
+    try {
+      await api.delete(
+        `/${type === "cause" ? "causes" : "consequences"}/${id}`,
+      )
+      if (type === "cause") {
+        setCauseList(prev => prev.filter(item => item.id !== id))
+        if (editingCauseId === id) setEditingCauseId(null)
+      } else {
+        setConsequenceList(prev => prev.filter(item => item.id !== id))
+        if (editingConsequenceId === id) setEditingConsequenceId(null)
+      }
+      toast({
+        title: "Eliminación exitosa",
+        description: `${type === "cause" ? "Causa" : "Consecuencia"} eliminada correctamente.`
+      })
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el registro."
+      })
     }
-
-    toast({
-      title: `${type === "cause" ? "Causa" : "Consecuencia"} eliminada`,
-      description: "Se ha eliminado exitosamente.",
-    })
   }
 
   return (
