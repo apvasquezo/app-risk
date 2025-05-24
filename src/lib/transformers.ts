@@ -35,3 +35,23 @@ export const transformChannels = (data: any[]) => {
       responsable: ctrl.responsable,
     }));
   };
+
+  export const transformEmployees = (data: any[])=> {
+    return data.map((emp) => ({
+      id: emp.id_employee,
+      cedula: emp.cedula,
+      name: emp.nombre,
+      cargo: emp.cargo,
+      area: emp.area,
+      correo: emp.correo,
+    }));
+  };
+
+  export const transformRiskFactors = (data: any[]) => {
+    return data.map((factor) => ({
+      id: factor.id_factor,
+      type: factor.tipo,
+      description: factor.descripcion,
+    }));
+  };
+  

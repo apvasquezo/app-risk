@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -26,6 +26,8 @@ interface Control {
   frecuencia: string
   responsable: string
 }
+const tipoControlOptions = ["Preventivo", "Detectivo", "Correctivo"];
+const frecuenciaOptions = ["Diario", "Semanal", "Mensual", "Trimestral", "Anual"];
 
 export default function ControlManagementForm() {
   const { toast } = useToast()
@@ -37,17 +39,31 @@ export default function ControlManagementForm() {
     frecuencia: "",
     responsable: "",
   })
-
   const [editingId, setEditingId] = useState<string | null>(null)
-
   const [errors, setErrors] = useState({
     tipoControl: false,
     descripcion: false,
     frecuencia: false,
     responsable: false,
   })
-
   const [controlList, setControlList] = useState<Control[]>([])
+
+  useEffect(() => {
+    const fetchControls = async () => {
+      try {
+        const response = await api.get("/controls" );
+        setControlList(transformControls(response.data));
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar controles",
+          description: "No se pudo obtener el listado de controles desde el servidor.",
+        });
+      }
+    };
+    fetchControls();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {
@@ -56,7 +72,6 @@ export default function ControlManagementForm() {
       frecuencia: !formData.frecuencia.trim(),
       responsable: !formData.responsable.trim(),
     }
-
     setErrors(newErrors)
     return !Object.values(newErrors).some((error) => error)
   }
@@ -79,42 +94,69 @@ export default function ControlManagementForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
+    e.preventDefault();
+  
     if (!validateForm()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
         description: "Todos los campos son obligatorios.",
-      })
-      return
+      });
+      return;
     }
-
+  
     try {
       if (editingId) {
-        setControlList(
-          controlList.map((control) => (control.id === editingId ? { ...formData, id: editingId } : control)),
-        )
+        await api.put(`/controls/${editingId}`, {
+          tipo_control: formData.tipoControl,
+          descripcion: formData.descripcion,
+          frecuencia: formData.frecuencia,
+          responsable: formData.responsable,
+        });
+  
+        setControlList(prev =>
+          prev.map(control =>
+            control.id === editingId ? { ...formData, id: editingId } : control
+          )
+        );
+  
         toast({
           title: "Control actualizado",
           description: "El control ha sido actualizado exitosamente.",
-        })
+        });
       } else {
-        const newControl = { ...formData, id: Date.now().toString() }
-        setControlList([...controlList, newControl])
+        const res = await api.post("/controls", {
+          tipo_control: formData.tipoControl,
+          descripcion: formData.descripcion,
+          frecuencia: formData.frecuencia,
+          responsable: formData.responsable,
+        });
+  
+        const newControl = {
+          id: res.data.id_control,
+          tipoControl: res.data.tipo_control,
+          descripcion: res.data.descripcion,
+          frecuencia: res.data.frecuencia,
+          responsable: res.data.responsable,
+        };
+  
+        setControlList(prev => [...prev, newControl]);
+  
         toast({
           title: "Control registrado",
           description: "El nuevo control ha sido registrado exitosamente.",
-        })
+        });
       }
-      resetForm()
-    } catch {
+  
+      resetForm();
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al procesar la solicitud.",
-      })
-    }
+      });
+    }  
   }
 
   const handleEdit = (control: Control) => {
@@ -122,14 +164,27 @@ export default function ControlManagementForm() {
     setEditingId(control.id)
   }
 
-  const handleDelete = (id: string) => {
-    setControlList(controlList.filter((control) => control.id !== id))
-    toast({
-      title: "Control eliminado",
-      description: "El control ha sido eliminado exitosamente.",
-    })
-    if (editingId === id) resetForm()
-  }
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/controls/${id}`);
+  
+      setControlList(prev => prev.filter(control => control.id !== id));
+  
+      toast({
+        title: "Control eliminado",
+        description: "El control ha sido eliminado exitosamente.",
+      });
+  
+      if (editingId === id) resetForm();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el control.",
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen p-8">
