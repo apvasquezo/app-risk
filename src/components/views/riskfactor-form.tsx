@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformRiskFactors } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -15,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface RiskFactor {
   id: string;
@@ -22,18 +24,32 @@ interface RiskFactor {
   description: string;
 }
 
-const predefinedRiskFactors = ["Fraude Interno", "Fraude Externo", "Clientes", "Fallas Tecnológicas"];
-
 export default function RiskFactors() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ type: "", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ type: false, description: false });
-
   const [riskFactors, setRiskFactors] = useState<RiskFactor[]>([
     { id: "1", type: "Fraude Interno", description: "Acciones fraudulentas cometidas por empleados." },
     { id: "2", type: "Fraude Externo", description: "Actos de fraude cometidos por externos a la organización." },
   ]);
+
+  useEffect(() => {
+    const fetchFactor = async () => {
+      try {
+        const response = await api.get("/channels" );
+        setRiskFactors(transformRiskFactors(response.data));
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar factores de riesgo",
+          description: "No se pudo obtener el listado de factores de riesgo desde el servidor.",
+        });
+      }
+    };
+    fetchFactor();
+  }, []);
 
   const validateForm = () => {
     const newErrors = {
