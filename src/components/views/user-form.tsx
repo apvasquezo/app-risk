@@ -155,13 +155,21 @@ export default function UserManagement() {
         });
       } 
       resetForm(); 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error al procesar usuario:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
-      });
+      if (axios.isAxiosError(error)) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error inesperado.",
+        });
+      }
     }
   };
   

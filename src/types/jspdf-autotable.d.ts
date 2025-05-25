@@ -1,5 +1,3 @@
-// types/jspdf-autotable.d.ts
-
 import "jspdf";
 
 declare module "jspdf" {
@@ -10,6 +8,21 @@ declare module "jspdf" {
 
 declare module "jspdf-autotable" {
   import { jsPDF } from "jspdf";
+
+  export interface HookData {
+    doc: jsPDF;
+    pageNumber: number;
+    settings: UserOptions;
+    table: unknown;
+    cursor: { x: number; y: number };
+  }
+
+  export interface CellHookData extends HookData {
+    row: unknown;
+    column: unknown;
+    cell: unknown;
+    section: "head" | "body" | "foot";
+  }
 
   export type MarginPaddingInput =
     | number
@@ -65,12 +78,14 @@ declare module "jspdf-autotable" {
     theme?: "striped" | "grid" | "plain";
     showHead?: "everyPage" | "firstPage" | "never";
     showFoot?: "everyPage" | "lastPage" | "never";
-    didParseCell?: (hookData: any) => void;
-    willDrawCell?: (hookData: any) => void;
-    didDrawCell?: (hookData: any) => void;
-    willDrawPage?: (hookData: any) => void;
-    didDrawPage?: (hookData: any) => void;
-    [key: string]: any;
+
+    didParseCell?: (hookData: CellHookData) => void;
+    willDrawCell?: (hookData: CellHookData) => void;
+    didDrawCell?: (hookData: CellHookData) => void;
+    willDrawPage?: (hookData: HookData) => void;
+    didDrawPage?: (hookData: HookData) => void;
+
+    [key: string]: unknown;
   }
 
   const autoTable: (doc: jsPDF, options: UserOptions) => void;

@@ -48,7 +48,7 @@ export default function RiskFactors() {
       }
     };
     fetchRiskFactors();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
