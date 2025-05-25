@@ -4,7 +4,6 @@ import { cn } from "@/lib/utils";
 import { 
   AlertCircle, 
   BarChart2, 
-  FileText, 
   AlertTriangle,
   Cog,
   ShieldCheck,

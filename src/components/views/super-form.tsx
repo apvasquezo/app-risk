@@ -1,11 +1,8 @@
 "use client";
 
-import { FaArrowRight } from "react-icons/fa";
-
 export default function Administrador() {
   return (
     <div className="min-h-screen bg-white px-130">
-      {/* Contenedor principal para el contenido */}
       <div className="absolute top-40 left-10 right-0 mx-auto max-w-3xl text-center">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-10">Supervisor</h1>
         <p className="text-gray-700 text-2xl leading-relaxed text-justify px-20">

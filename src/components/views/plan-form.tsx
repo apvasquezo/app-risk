@@ -146,7 +146,8 @@ export default function ActionPlanForm() {
         })
       }
       resetForm()
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",

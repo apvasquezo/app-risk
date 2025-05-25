@@ -44,7 +44,7 @@ export default function Channels() {
       }
     };
     fetchChannels();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = { name: !formData.name.trim() };
