@@ -84,7 +84,7 @@ export default function UserManagement() {
     setFormData({
       usuario: "",
       contraseña: "",
-      rol: "Supervisor",
+      rol: "Super",
     });
     setEditingId(null);
     setErrors({
@@ -155,13 +155,21 @@ export default function UserManagement() {
         });
       } 
       resetForm(); 
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error al procesar usuario:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
-      });
+      if (axios.isAxiosError(error)) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error inesperado.",
+        });
+      }
     }
   };
   
@@ -188,6 +196,7 @@ export default function UserManagement() {
         description: "El usuario ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",

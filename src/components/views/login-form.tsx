@@ -12,7 +12,7 @@ import { Eye, EyeOff, Lock, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
-import axios, { AxiosError } from "axios"
+import axios from "axios"
 
 export default function LoginForm() {
   const { setUser } = useAuth();

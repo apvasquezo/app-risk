@@ -28,29 +28,22 @@ export default function ProbabilityImpactForm() {
   const [probForm, setProbForm] = useState({ description: "", definition: "", criterion: "" });
   const [impactForm, setImpactForm] = useState({ description: "", definition: "", criterion: "" });
 
-  const [probList, setProbList] = useState<Item[]>([
-    {
-      id: "1",
-      description: "Inusual",
-      definition: "Puede ocurrir sólo en circunstancias excepcionales",
-      criterion: "5%",
-    },
-  ]);
+  const [probList, setProbList] = useState<Item[]>([{
+    id: "1",
+    description: "Inusual",
+    definition: "Puede ocurrir sólo en circunstancias excepcionales",
+    criterion: "5%",
+  }]);
 
-  const [impactList, setImpactList] = useState<Item[]>([
-    {
-      id: "1",
-      description: "Bajo",
-      definition: "No genera perjuicio",
-      criterion: "1 SMLV",
-    },
-  ]);
+  const [impactList, setImpactList] = useState<Item[]>([{
+    id: "1",
+    description: "Bajo",
+    definition: "No genera perjuicio",
+    criterion: "1 SMLV",
+  }]);
 
   const [editingProbId, setEditingProbId] = useState<string | null>(null);
   const [editingImpactId, setEditingImpactId] = useState<string | null>(null);
-
-  const isEditing = (id: string, type: 'prob' | 'impact') =>
-    type === 'prob' ? editingProbId === id : editingImpactId === id;
 
   const handleSubmit = (e: React.FormEvent, type: 'prob' | 'impact') => {
     e.preventDefault();
@@ -102,21 +95,26 @@ export default function ProbabilityImpactForm() {
     const setList = type === 'prob' ? setProbList : setImpactList;
     const list = type === 'prob' ? probList : impactList;
     setList(list.filter((item) => item.id !== id));
-
+  
     if ((type === 'prob' && editingProbId === id) || (type === 'impact' && editingImpactId === id)) {
-      type === 'prob' ? setEditingProbId(null) : setEditingImpactId(null);
+      if (type === 'prob') {
+        setEditingProbId(null);
+      } else {
+        setEditingImpactId(null);
+      }
     }
-
+  
     toast({
       title: `${type === 'prob' ? "Probabilidad" : "Impacto"} eliminada`,
       description: "Se ha eliminado exitosamente.",
     });
   };
+  
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Columna de Probabilidad */}
+        {/* Probabilidad */}
         <div>
           <h1 className="text-3xl font-bold text-violet-900">Gestión de Probabilidad</h1>
           <Card className="p-6 shadow-lg border-t-4 border-violet-500 mt-4">
@@ -125,7 +123,9 @@ export default function ProbabilityImpactForm() {
                 const key = ["description", "definition", "criterion"][index] as keyof typeof probForm;
                 return (
                   <div className="space-y-2" key={key}>
-                    <label className="text-sm font-medium text-violet-700">{label} <span className="text-red-500">*</span></label>
+                    <label className="text-sm font-medium text-violet-700">
+                      {label} <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       value={probForm[key]}
                       onChange={(e) => setProbForm({ ...probForm, [key]: e.target.value })}
@@ -185,7 +185,7 @@ export default function ProbabilityImpactForm() {
           </Card>
         </div>
 
-        {/* Columna de Impacto */}
+        {/* Impacto */}
         <div>
           <h1 className="text-3xl font-bold text-violet-900">Gestión de Impacto</h1>
           <Card className="p-6 shadow-lg border-t-4 border-violet-500 mt-4">
@@ -194,7 +194,9 @@ export default function ProbabilityImpactForm() {
                 const key = ["description", "definition", "criterion"][index] as keyof typeof impactForm;
                 return (
                   <div className="space-y-2" key={key}>
-                    <label className="text-sm font-medium text-violet-700">{label} <span className="text-red-500">*</span></label>
+                    <label className="text-sm font-medium text-violet-700">
+                      {label} <span className="text-red-500">*</span>
+                    </label>
                     <Input
                       value={impactForm[key]}
                       onChange={(e) => setImpactForm({ ...impactForm, [key]: e.target.value })}
