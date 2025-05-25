@@ -71,7 +71,7 @@ export const transformChannels = (data: Channel[]) => {
 
 export const transformCategories = (data: Category[]) => {
   return data.map((cat) => ({
-    id: cat.id_category,
+    id_category: String(cat.id_category),
     name: cat.description,
   }));
 };
