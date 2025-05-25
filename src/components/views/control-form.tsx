@@ -4,9 +4,9 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui_prueba/card"
+import { Input } from "@/components/ui_prueba/input"
+import { Button } from "@/components/ui_prueba/button"
 import { transformControls } from "@/lib/transformers"
 import {
   Table,
@@ -15,9 +15,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui_prueba/table";
 import { useToast } from "@/hooks/use-toast"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui_prueba/select"
 import api from "@/lib/axios";
 interface Control {
   id: string

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui_prueba/card"
+import { Input } from "@/components/ui_prueba/input"
+import { Button } from "@/components/ui_prueba/button"
 import { transformCauses } from "@/lib/transformers"
 import { transformConsequences } from "@/lib/transformers"
 import {
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui_prueba/table";
 import { useToast } from "@/hooks/use-toast"
 import api from "@/lib/axios";
 

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui_prueba/card";
+import { Input } from "@/components/ui_prueba/input";
+import { Button } from "@/components/ui_prueba/button";
 import {
   Table,
   TableBody,
@@ -12,14 +12,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui_prueba/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui_prueba/select";
 import { useToast } from "@/hooks/use-toast";
 
 interface Process {
