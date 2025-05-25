@@ -95,16 +95,21 @@ export default function ProbabilityImpactForm() {
     const setList = type === 'prob' ? setProbList : setImpactList;
     const list = type === 'prob' ? probList : impactList;
     setList(list.filter((item) => item.id !== id));
-
+  
     if ((type === 'prob' && editingProbId === id) || (type === 'impact' && editingImpactId === id)) {
-      type === 'prob' ? setEditingProbId(null) : setEditingImpactId(null);
+      if (type === 'prob') {
+        setEditingProbId(null);
+      } else {
+        setEditingImpactId(null);
+      }
     }
-
+  
     toast({
       title: `${type === 'prob' ? "Probabilidad" : "Impacto"} eliminada`,
       description: "Se ha eliminado exitosamente.",
     });
   };
+  
 
   return (
     <div className="min-h-screen p-8">

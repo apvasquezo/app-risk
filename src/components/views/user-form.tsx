@@ -84,7 +84,7 @@ export default function UserManagement() {
     setFormData({
       usuario: "",
       contraseña: "",
-      rol: "Supervisor",
+      rol: "Super",
     });
     setEditingId(null);
     setErrors({
