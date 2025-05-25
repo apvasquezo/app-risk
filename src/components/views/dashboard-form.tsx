@@ -1,6 +1,6 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui_prueba/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import PieChart from "@/components/charts/pie-chart"
 import BarChart from "@/components/charts/bar-chart"
 import LineChart from "@/components/charts/line-chart"

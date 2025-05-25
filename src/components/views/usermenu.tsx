@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
-import { Button } from "@/components/ui_prueba/button";
+import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation"; // Importa useRouter para redirigir
 
 export default function UserMenu() {

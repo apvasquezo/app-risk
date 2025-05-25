@@ -4,9 +4,9 @@ import type React from "react"
 
 import { useState } from "react"
 import { FaUserCircle } from "react-icons/fa"
-import { Button } from "@/components/ui_prueba/button"
-import { Input } from "@/components/ui_prueba/input"
-import { Card } from "@/components/ui_prueba/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card } from "@/components/ui/card"
 
 export default function ProfileForm() {
   const [formData, setFormData] = useState({

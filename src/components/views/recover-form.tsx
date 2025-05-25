@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui_prueba/button";
-import { Input } from "@/components/ui_prueba/input";
-import { Card } from "@/components/ui_prueba/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { Mail, ArrowLeft, User } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";

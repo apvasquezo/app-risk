@@ -1,6 +1,6 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui_prueba/card"
-import { Button } from "@/components/ui_prueba/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
 import { Download } from "lucide-react"
 import * as XLSX from "xlsx"
 
