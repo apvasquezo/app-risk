@@ -63,7 +63,7 @@ export default function ControlManagementForm() {
       }
     };
     fetchControls();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {

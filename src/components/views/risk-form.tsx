@@ -85,8 +85,6 @@ export default function EventManagement() {
     estado: false,
   })
 
-  const [showSuggestionModal, setShowSuggestionModal] = useState(false)
-  const [isLoadingModal, setIsLoadingModal] = useState(false)
   const [eventEntries, setEventEntries] = useState<EventEntry[]>([
     {
       id: "1",

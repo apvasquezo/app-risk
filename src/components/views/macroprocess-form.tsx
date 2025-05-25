@@ -105,6 +105,7 @@ export default function Macroprocess() {
       }
       resetForm();
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -130,6 +131,7 @@ export default function Macroprocess() {
         description: "El macroproceso ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",

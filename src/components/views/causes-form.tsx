@@ -55,7 +55,7 @@ export default function CausesConsequencesForm() {
       }
     }
     fetchData()
-  }, [])
+  }, [toast])
 
   const handleSubmit = async (
     e: React.FormEvent,
@@ -117,7 +117,7 @@ export default function CausesConsequencesForm() {
       }
       if (type === "cause") setCauseForm({ description: "" })
       else setConsequenceForm({ description: "" })
-    } catch (error) {
+    } catch  {
       toast({
         variant: "destructive",
         title: "Error al guardar",
@@ -152,7 +152,7 @@ export default function CausesConsequencesForm() {
         title: "Eliminación exitosa",
         description: `${type === "cause" ? "Causa" : "Consecuencia"} eliminada correctamente.`
       })
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error al eliminar",

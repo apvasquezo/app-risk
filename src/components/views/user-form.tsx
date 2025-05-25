@@ -58,6 +58,7 @@ export default function UserManagement() {
 
         setUsers(transformedUsers);
       } catch (error) {
+        console.log(error)
         toast({
           variant: "destructive",
           title: "Error al cargar usuarios",
@@ -67,7 +68,7 @@ export default function UserManagement() {
     };
   
     fetchUsers();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
@@ -112,35 +113,28 @@ export default function UserManagement() {
         description: "No se encontró un token de autenticación.",
       });
       return;
-    }
-  
+    } 
     try {
       const payload = {
         username: formData.usuario,
         password: formData.contraseña,
         role_id: formData.rol === "super" ? 1 : 2 
       };
-      console.log ("payload", payload)
       if (editingId) {
-        // Actualización (PUT)
         console.log("user_id ", editingId)
         await axios.put(`http://localhost:8000/users/${editingId}`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
-  
+        }); 
         setUsers(users.map(user =>
           user.id === editingId ? { ...formData, id: editingId } : user
-        ));
-  
+        ));  
         toast({
           title: "Usuario actualizado",
           description: "Los datos del usuario han sido actualizados exitosamente.",
-        });
-  
+        }); 
       } else {
-        // Registro (POST)
         const response = await axios.post("http://localhost:8000/users", payload, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -153,18 +147,14 @@ export default function UserManagement() {
           usuario: rawUser.username,
           contraseña: "", 
           rol: rawUser.role_id === 1 ? "super" : "admin" 
-        };
-        
-        setUsers([...users, formattedUser]);
-  
+        };       
+        setUsers([...users, formattedUser]);  
         toast({
           title: "Usuario registrado",
           description: "El nuevo usuario ha sido registrado exitosamente.",
         });
-      }
-  
-      resetForm();
-  
+      } 
+      resetForm(); 
     } catch (error: any) {
       console.error("Error al procesar usuario:", error);
       toast({
@@ -175,7 +165,6 @@ export default function UserManagement() {
     }
   };
   
-
   const handleEdit = (user: User) => {
     setFormData(user);
     setEditingId(user.id);
@@ -208,7 +197,6 @@ export default function UserManagement() {
   
   };
   
-
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-8">

@@ -57,7 +57,7 @@ export default function Personal() {
       }
     };
     fetchEmployes();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
@@ -145,6 +145,7 @@ export default function Personal() {
       }
       resetForm();
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -171,6 +172,7 @@ export default function Personal() {
         description: "El empleado ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -198,9 +200,10 @@ export default function Personal() {
                 </label>
                 <Input
                   required
+                  type="number"
                   placeholder="Ingrese la cédula"
                   value={formData.cedula}
-                  disabled={!!editingId}  // Deshabilita si estás editando
+                  disabled={!!editingId}
                   onChange={(e) => {
                     setFormData({ ...formData, cedula: e.target.value });
                     setErrors({ ...errors, cedula: false });
@@ -219,6 +222,7 @@ export default function Personal() {
                 </label>
                 <Input
                   required
+                  type="text"
                   placeholder="Ingrese el nombre"
                   value={formData.name}
                   onChange={(e) => {
@@ -238,6 +242,7 @@ export default function Personal() {
                   Cargo
                 </label>
                 <Input
+                  type="text"
                   placeholder="Ingrese el cargo"
                   value={formData.cargo}
                   onChange={(e) =>
@@ -252,6 +257,7 @@ export default function Personal() {
                 </label>
                 <Input
                   placeholder="Ingrese el área"
+                  type="text"
                   value={formData.area}
                   onChange={(e) =>
                     setFormData({ ...formData, area: e.target.value })
