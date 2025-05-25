@@ -3,10 +3,10 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
+import { Button } from "@/components/ui_prueba/button"
+import { Input } from "@/components/ui_prueba/input"
+import { Label } from "@/components/ui_prueba/label"
+import { Checkbox } from "@/components/ui_prueba/checkbox"
 import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
 

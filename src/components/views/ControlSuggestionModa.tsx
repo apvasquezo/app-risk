@@ -8,14 +8,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui_prueba/dialog"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui_prueba/tabs"
+import { Button } from "@/components/ui_prueba/button"
 import { AlertCircle } from "lucide-react"
 
 interface Props {

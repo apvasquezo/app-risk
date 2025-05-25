@@ -24,31 +24,30 @@ interface RiskFactor {
   description: string;
 }
 
+const predefinedRiskFactors = ["Fraude Interno", "Fraude Externo", "Cumplimiento"];
+
 export default function RiskFactors() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ type: "", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ type: false, description: false });
-  const [riskFactors, setRiskFactors] = useState<RiskFactor[]>([
-    { id: "1", type: "Fraude Interno", description: "Acciones fraudulentas cometidas por empleados." },
-    { id: "2", type: "Fraude Externo", description: "Actos de fraude cometidos por externos a la organización." },
-  ]);
+  const [riskFactors, setRiskFactors] = useState<RiskFactor[]>([]);
 
   useEffect(() => {
-    const fetchFactor = async () => {
+    const fetchRiskFactors = async () => {
       try {
-        const response = await api.get("/channels" );
+        const response = await api.get("/risk-factors");
         setRiskFactors(transformRiskFactors(response.data));
       } catch (error) {
         console.error(error);
         toast({
           variant: "destructive",
           title: "Error al cargar factores de riesgo",
-          description: "No se pudo obtener el listado de factores de riesgo desde el servidor.",
+          description: "No se pudo obtener el listado desde el servidor.",
         });
       }
     };
-    fetchFactor();
+    fetchRiskFactors();
   }, []);
 
   const validateForm = () => {
@@ -79,53 +78,53 @@ export default function RiskFactors() {
 
     try {
       if (editingId) {
-        setRiskFactors(
-          riskFactors.map((riskFactor) =>
-            riskFactor.id === editingId ? { ...formData, id: editingId } : riskFactor
-          )
+        await api.put(`/risk-factors/${editingId}`, formData);
+        const updatedRiskFactors = riskFactors.map((factor) =>
+          factor.id === editingId ? { ...factor, ...formData } : factor
         );
-        toast({
-          title: "Factor de Riesgo actualizado",
-          description: "El factor de riesgo ha sido actualizado exitosamente.",
-        });
+        setRiskFactors(updatedRiskFactors);
+        toast({ title: "Actualizado", description: "El factor fue actualizado." });
       } else {
-        const newRiskFactor = { ...formData, id: Date.now().toString() };
-        setRiskFactors([...riskFactors, newRiskFactor]);
-        toast({
-          title: "Factor de Riesgo registrado",
-          description: "El nuevo factor de riesgo ha sido registrado exitosamente.",
-        });
+        const response = await api.post("/risk-factors", formData);
+        setRiskFactors([...riskFactors, response.data]);
+        toast({ title: "Registrado", description: "Nuevo factor registrado con éxito." });
       }
       resetForm();
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Ocurrió un error al procesar la solicitud.",
+        description: "Ocurrió un problema al guardar los datos.",
       });
     }
   };
 
-  const handleEdit = (riskFactor: RiskFactor) => {
-    setFormData(riskFactor);
-    setEditingId(riskFactor.id);
+  const handleEdit = (factor: RiskFactor) => {
+    setFormData(factor);
+    setEditingId(factor.id);
   };
 
-  const handleDelete = (id: string) => {
-    setRiskFactors(riskFactors.filter((riskFactor) => riskFactor.id !== id));
-    toast({
-      title: "Factor de Riesgo eliminado",
-      description: "El factor de riesgo ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
+  const handleDelete = async (id: string) => {
+    try {
+      await api.delete(`/risk-factors/${id}`);
+      setRiskFactors(riskFactors.filter((factor) => factor.id !== id));
+      toast({ title: "Eliminado", description: "El factor fue eliminado con éxito." });
+      if (editingId === id) resetForm();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el factor.",
+      });
+    }
   };
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-violet-900">Gestión Factores de Riesgos</h1>
-        </div>
+        <h1 className="text-3xl font-bold text-violet-900">Gestión Factores de Riesgos</h1>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -134,104 +133,75 @@ export default function RiskFactors() {
                 Tipo de Riesgo <span className="text-red-500">*</span>
               </label>
               <Select
-                onValueChange={(value) => {
-                  setFormData({ ...formData, type: value });
-                  setErrors({ ...errors, type: false });
-                }}
+                onValueChange={(value) => setFormData({ ...formData, type: value })}
                 value={formData.type}
               >
-                <SelectTrigger
-                  className={`$${
-                    errors.type ? "border-red-500" : "border-violet-200 focus:ring-violet-500"
-                  } w-full rounded-md p-2 bg-white text-black`}
-                >
+                <SelectTrigger className={`border-violet-200 ${errors.type && "border-red-500"}`}>
                   <SelectValue placeholder="Seleccione un tipo de riesgo" />
                 </SelectTrigger>
-                <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                <SelectContent>
                   {predefinedRiskFactors.map((type) => (
-                    <SelectItem
-                      key={type}
-                      value={type}
-                      className="hover:bg-violet-100 focus:bg-violet-200"
-                    >
+                    <SelectItem key={type} value={type}>
                       {type}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.type && (
-                <p className="text-sm text-red-500">Este campo es obligatorio</p>
-              )}
+              {errors.type && <p className="text-sm text-red-500">Campo obligatorio</p>}
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium text-violet-700">
-                Factor de Riesgo <span className="text-red-500">*</span>
+                Descripción <span className="text-red-500">*</span>
               </label>
               <Input
-                required
-                placeholder="Ingrese la descripción"
+                placeholder="Descripción del riesgo"
                 value={formData.description}
-                onChange={(e) => {
-                  setFormData({ ...formData, description: e.target.value });
-                  setErrors({ ...errors, description: false });
-                }}
-                className={`border-violet-200 focus:ring-violet-500 $${
-                  errors.description ? "border-red-500" : ""
-                }`}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className={`border-violet-200 ${errors.description && "border-red-500"}`}
               />
-              {errors.description && (
-                <p className="text-sm text-red-500">Este campo es obligatorio</p>
+              {errors.description && <p className="text-sm text-red-500">Campo obligatorio</p>}
+            </div>
+
+            <div className="flex gap-4">
+              <Button type="submit" className="bg-violet-500 text-white">
+                {editingId ? "Actualizar" : "Registrar"}
+              </Button>
+              {editingId && (
+                <Button type="button" variant="outline" onClick={resetForm}>
+                  Cancelar
+                </Button>
               )}
             </div>
-            <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
-              {editingId ? "Actualizar Factor de Riesgo" : "Registrar Factor de Riesgo"}
-            </Button>
-            {editingId && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={resetForm}
-                className="text-violet-600 border-violet-600"
-              >
-                Cancelar
-              </Button>
-            )}
           </form>
         </Card>
 
         <Card className="p-6 shadow-lg border-t-4 border-orange-500">
-          <h2 className="text-2xl font-semibold text-orange-900">Listado de Factores de Riesgos</h2>
+          <h2 className="text-2xl font-semibold text-orange-900">Listado de Factores</h2>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="bg-violet-50">Tipo de Riesgo</TableHead>
-                <TableHead className="bg-violet-50">Factor de Riesgo</TableHead>
-                <TableHead className="bg-violet-50">Acciones</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Descripción</TableHead>
+                <TableHead>Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {riskFactors.map((riskFactor) => (
-                <TableRow key={riskFactor.id} className="hover:bg-violet-50">
-                  <TableCell>{riskFactor.type}</TableCell>
-                  <TableCell>{riskFactor.description}</TableCell>
+              {riskFactors.map((factor) => (
+                <TableRow key={factor.id}>
+                  <TableCell>{factor.type}</TableCell>
+                  <TableCell>{factor.description}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-violet-600 border-violet-600"
-                        onClick={() => handleEdit(riskFactor)}
-                      >
-                        <Edit3 className="w-4 h-4" />
+                      <Button size="sm" variant="outline" onClick={() => handleEdit(factor)}>
+                        <Edit3 />
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        className="text-orange-600 border-orange-600"
-                        onClick={() => handleDelete(riskFactor.id)}
+                        onClick={() => handleDelete(factor.id)}
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 />
                       </Button>
                     </div>
                   </TableCell>

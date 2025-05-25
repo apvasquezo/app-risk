@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui_prueba/button"
 import { FileSpreadsheet, FileText } from "lucide-react"
 import { exportToExcel, exportToPDF, prepareDataForExport } from "@/lib/export-utils"
 
