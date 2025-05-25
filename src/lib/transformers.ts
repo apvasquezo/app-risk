@@ -55,3 +55,9 @@ export const transformChannels = (data: any[]) => {
     }));
   };
   
+  export const transformTypeControl = (data: any[]) => {
+    return data.map((typecontrol) => ({
+      id: typecontrol.id_typecontrol,
+      description: typecontrol.description,
+    }));
+  };

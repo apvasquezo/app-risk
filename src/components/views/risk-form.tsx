@@ -4,15 +4,15 @@ import type React from "react"
 
 import { useState } from "react"
 import { Edit3, Trash2, Lightbulb } from "lucide-react"
-import { Card } from "@/components/ui_prueba/card"
-import { Input } from "@/components/ui_prueba/input"
-import { Button } from "@/components/ui_prueba/button"
-import { Textarea } from "@/components/ui_prueba/textarea"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui_prueba/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui_prueba/select"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
-import { Label } from "@/components/ui_prueba/label"
-import { ExportButtons } from "@/components/ui_prueba/export-buttons"
+import { Label } from "@/components/ui/label"
+import { ExportButtons } from "@/components/ui/export-buttons"
 
 interface EventEntry {
   id: string

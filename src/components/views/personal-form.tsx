@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui_prueba/card";
-import { Input } from "@/components/ui_prueba/input";
-import { Button } from "@/components/ui_prueba/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { transformEmployees } from "@/lib/transformers";
 import {
   Table,
@@ -13,7 +13,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui_prueba/table";
+} from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/axios";
 
