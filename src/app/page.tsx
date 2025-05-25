@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { useRouter } from "next/navigation";
 import { AlertTriangle, BarChart3, Shield, Users } from "lucide-react";
 
