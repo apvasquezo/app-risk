@@ -47,6 +47,7 @@ export default function CausesConsequencesForm() {
         setCauseList(transformCauses(causeRes.data));
         setConsequenceList(transformConsequences(consequenceRes.data));
       } catch (error) {
+        console.log(error)
         toast({
           variant: "destructive",
           title: "Error al cargar datos",
@@ -117,7 +118,8 @@ export default function CausesConsequencesForm() {
       }
       if (type === "cause") setCauseForm({ description: "" })
       else setConsequenceForm({ description: "" })
-    } catch  {
+    } catch  (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error al guardar",
