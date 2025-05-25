@@ -196,6 +196,7 @@ export default function UserManagement() {
         description: "El usuario ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",
