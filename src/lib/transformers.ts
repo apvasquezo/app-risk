@@ -1,24 +1,25 @@
-interface Channel {
+// Interfaces backend (datos crudos)
+export interface Channel {
   id_channel: number;
   description: string;
 }
 
-interface Category {
+export interface Category {
   id_category: number;
   description: string;
 }
 
-interface Cause {
+export interface Cause {
   id_cause: number;
   description: string;
 }
 
-interface Consequence {
+export interface Consequence {
   id_consequence: number;
   description: string;
 }
 
-interface Control {
+export interface Control {
   id_control: number;
   tipo_control: string;
   descripcion: string;
@@ -26,7 +27,7 @@ interface Control {
   responsable: string;
 }
 
-interface Employee {
+export interface Employee {
   id_employee: number;
   cedula: string;
   nombre: string;
@@ -35,18 +36,32 @@ interface Employee {
   correo: string;
 }
 
-interface RiskFactor {
+export interface RiskFactor {
   id_factor: number;
   tipo: string;
   descripcion: string;
 }
 
-interface TypeControl {
+export interface TypeControl {
   id_typecontrol: number;
   description: string;
 }
 
+export interface RawUser {
+  id_user: string;
+  username: string;
+  role_id: number;
+}
 
+// Interface frontend (ya transformado)
+export interface User {
+  id: string;
+  usuario: string;
+  contraseña: string;
+  rol: string;
+}
+
+// Transformadores
 export const transformChannels = (data: Channel[]) => {
   return data.map((ch) => ({
     id: String(ch.id_channel),
@@ -56,7 +71,7 @@ export const transformChannels = (data: Channel[]) => {
 
 export const transformCategories = (data: Category[]) => {
   return data.map((cat) => ({
-    id_category: cat.id_category,
+    id: cat.id_category,
     name: cat.description,
   }));
 };
@@ -111,3 +126,11 @@ export const transformTypeControl = (data: TypeControl[]) => {
   }));
 };
 
+export const transformUsers = (data: RawUser[]): User[] => {
+  return data.map((user) => ({
+    id: user.id_user,
+    usuario: user.username,
+    contraseña: "",
+    rol: user.role_id === 1 ? "super" : "admin",
+  }));
+};

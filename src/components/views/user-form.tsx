@@ -6,6 +6,8 @@ import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformUsers } from "@/lib/transformers";
+import type { RawUser } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -48,15 +50,7 @@ export default function UserManagement() {
             Authorization: `Bearer ${token}`, 
           },
         });
-        const rawUsers = response.data;
-        const transformedUsers = rawUsers.map((user: any) => ({
-          id: user.id_user,
-          usuario: user.username,
-          contraseña: "",
-          rol: user.role_id === 1 ? "super" : "admin",
-        }));
-
-        setUsers(transformedUsers);
+        setUsers(transformUsers(response.data as RawUser[]));
       } catch (error) {
         console.log(error)
         toast({
@@ -84,7 +78,7 @@ export default function UserManagement() {
     setFormData({
       usuario: "",
       contraseña: "",
-      rol: "Super",
+      rol: "super",
     });
     setEditingId(null);
     setErrors({
@@ -141,13 +135,7 @@ export default function UserManagement() {
           },
         });
   
-        const rawUser = response.data;
-        const formattedUser = {
-          id: rawUser.id_user,
-          usuario: rawUser.username,
-          contraseña: "", 
-          rol: rawUser.role_id === 1 ? "super" : "admin" 
-        };       
+        const [formattedUser] = transformUsers([response.data as RawUser]);     
         setUsers([...users, formattedUser]);  
         toast({
           title: "Usuario registrado",
