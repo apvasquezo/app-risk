@@ -111,6 +111,8 @@ export default function RiskCategories() {
   };
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar esta categoria de riesgo?");
+    if (!confirmDelete) return;
     try {
       await api.delete(`/risk-categories/${id}`);
       setCategory(categories.filter((cat) => cat.id_category !== id));

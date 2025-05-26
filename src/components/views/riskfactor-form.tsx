@@ -106,6 +106,8 @@ export default function RiskFactors() {
   };
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este factor de riesgo?");
+    if (!confirmDelete) return;
     try {
       await api.delete(`/risk-factors/${id}`);
       setRiskFactors(riskFactors.filter((factor) => factor.id !== id));

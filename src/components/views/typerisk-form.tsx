@@ -96,6 +96,8 @@ export default function RiskTypes() {
   };
 
   const handleDelete = (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este tipo de riesgos?");
+    if (!confirmDelete) return;
     setRiskTypes(riskTypes.filter((riskType) => riskType.id !== id));
     toast({
       title: "Tipo de Riesgo eliminado",

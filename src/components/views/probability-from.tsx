@@ -92,6 +92,8 @@ export default function ProbabilityImpactForm() {
   };
 
   const handleDelete = (id: string, type: 'prob' | 'impact') => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar la probabilidad e impacto?");
+    if (!confirmDelete) return;
     const setList = type === 'prob' ? setProbList : setImpactList;
     const list = type === 'prob' ? probList : impactList;
     setList(list.filter((item) => item.id !== id));

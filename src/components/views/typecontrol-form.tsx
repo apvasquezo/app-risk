@@ -83,6 +83,8 @@ export default function ControlTypes() {
   };
 
   const handleDelete = (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este servicio?");
+    if (!confirmDelete) return;
     setControlTypes(controlTypes.filter((control) => control.id !== id));
     toast({
       title: "Tipo de Control eliminado",
