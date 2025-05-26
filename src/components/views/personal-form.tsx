@@ -1,73 +1,72 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { transformEmployees } from "@/lib/transformers";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/axios";
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { UserPlus, Users, Pencil, Trash2 } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useToast } from "@/hooks/use-toast"
+import api from "@/lib/axios"
+import { transformEmployees } from "@/lib/transformers"
 
 interface Employee {
-  cedula: string;
-  name: string;
-  cargo: string;
-  area: string;
-  correo: string;
+  cedula: string
+  name: string
+  cargo: string
+  area: string
+  correo: string
+  notifica: boolean
 }
 
 export default function Personal() {
-  const { toast } = useToast();
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     cedula: "",
     name: "",
     cargo: "",
     area: "",
     correo: "",
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
+    notifica: false,
+  })
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [errors, setErrors] = useState({
     cedula: false,
     name: false,
     correo: false,
-  });
-  const [employees, setEmployees] = useState<Employee[]>([]);
+  })
+  const [employees, setEmployees] = useState<Employee[]>([])
 
   useEffect(() => {
     const fetchEmployes = async () => {
       try {
-        const response = await api.get("/channels" );
-        setEmployees(transformEmployees(response.data));
+        const response = await api.get("/personal")
+        console.log ("personal ", response.data)
+        setEmployees(transformEmployees(response.data))
       } catch (error) {
-        console.error(error);
+        console.error(error)
         toast({
           variant: "destructive",
           title: "Error al cargar personal",
           description: "No se pudo obtener el listado de personal desde el servidor.",
-        });
+        })
       }
-    };
-    fetchEmployes();
-  }, [toast]);
+    }
+    fetchEmployes()
+  }, [toast])
 
   const validateForm = () => {
     const newErrors = {
       cedula: !formData.cedula.trim(),
       name: !formData.name.trim(),
       correo: !formData.correo.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo),
-    };
-    setErrors(newErrors);
-    return !Object.values(newErrors).some(Boolean);
-  };
+    }
+    setErrors(newErrors)
+    return !Object.values(newErrors).some(Boolean)
+  }
 
   const resetForm = () => {
     setFormData({
@@ -76,119 +75,125 @@ export default function Personal() {
       cargo: "",
       area: "",
       correo: "",
-    });
-    setEditingId(null);
+      notifica: false,
+    })
+    setEditingId(null)
     setErrors({
       cedula: false,
       name: false,
       correo: false,
-    });
-  };
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();   
+    e.preventDefault()
     if (!validateForm()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
         description: "Por favor complete todos los campos obligatorios correctamente.",
-      });
-      return;
+      })
+      return
     }
     try {
       if (editingId) {
         await api.put(`/personal/${editingId}`, {
-          cedula: formData.cedula,
+          id_personal: formData.cedula,
           name: formData.name,
-          cargo: formData.cargo,
+          position: formData.cargo,
           area: formData.area,
-          correo: formData.correo,
-        });
-        setEmployees(employees.map(emp => 
-          emp.cedula === editingId 
-            ? { ...formData, id: editingId }
-            : emp
-          )
-        );
+          email: formData.correo,
+          notify: formData.notifica 
+        })
+        setEmployees(
+          employees.map((emp) =>
+            emp.cedula === editingId
+              ? { ...formData, cedula: editingId } 
+              : emp,
+          ),
+        )
         toast({
           title: "Empleado actualizado",
           description: "Los datos del empleado han sido actualizados exitosamente.",
-        });
+        })
       } else {
-        const response = await api.post("/personal", { 
-          cedula: formData.cedula,
+        const response = await api.post("/personal", {
+          id_personal: formData.cedula,
           name: formData.name,
-          cargo: formData.cargo,
+          position: formData.cargo,
           area: formData.area,
-          correo: formData.correo, 
-        });
-        if (employees.some(emp => emp.cedula === formData.cedula)) {
+          email: formData.correo,
+          notify: formData.notifica 
+        })
+        if (employees.some((emp) => emp.cedula === formData.cedula)) {
           toast({
             variant: "destructive",
             title: "Empleado duplicado",
             description: "Ya existe un empleado con esa cédula.",
-          });
-          return;
+          })
+          return
         }
         const newEmployee = {
-          cedula: response.data.cedula,
-          name:  response.data.name,
-          cargo:  response.data.cargo,
-          area:  response.data.area,
-          correo:  response.data.correo, 
-        };
-        setEmployees([...employees, newEmployee]);
+          cedula: response.data.id_personal,
+          name: response.data.name,
+          cargo: response.data.position,
+          area: response.data.area,
+          correo: response.data.email,
+          notifica: response.data.notify,
+        }
+        console.log("nuevo personal ", newEmployee)
+        setEmployees([...employees, newEmployee])
         toast({
           title: "Empleado registrado",
           description: "El nuevo empleado ha sido registrado exitosamente.",
-        });
+        })
       }
-      resetForm();
+      resetForm()
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al procesar la solicitud.",
-      });
+      })
     }
-  };
+  }
 
   const handleEdit = (employee: Employee) => {
-    setFormData(employee);
-    setEditingId(employee.cedula);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+    setFormData(employee)
+    setEditingId(employee.cedula)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (cedula: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este personal?");
+    if (!confirmDelete) return;
     try {
-      await api.delete(`/personal/${id}`); 
-      setEmployees(employees.filter(emp => emp.cedula !== id));
-      if (editingId === id) {
-        resetForm();
+      await api.delete(`/personal/${cedula}`)
+      setEmployees(employees.filter((emp) => emp.cedula !== cedula))
+      if (editingId === cedula) {
+        resetForm()
       }
       toast({
         title: "Empleado eliminado",
         description: "El empleado ha sido eliminado exitosamente.",
-      });
+      })
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al eliminar el empleado.",
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center gap-4">
           <Users className="h-8 w-8 text-violet-600" />
-          <h1 className="text-3xl font-bold text-violet-900">
-            Gestión de Empleados
-          </h1>
+          <h1 className="text-3xl font-bold text-violet-900">Gestión de Empleados</h1>
         </div>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500">
@@ -205,15 +210,16 @@ export default function Personal() {
                   value={formData.cedula}
                   disabled={!!editingId}
                   onChange={(e) => {
-                    setFormData({ ...formData, cedula: e.target.value });
-                    setErrors({ ...errors, cedula: false });
+                    setFormData({ ...formData, cedula: e.target.value })
+                    setErrors({ ...errors, cedula: false })
                   }}
                   className={`border-violet-200 focus:ring-violet-500 ${
                     errors.cedula ? "border-red-500" : ""
-                  } ${editingId ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                  } ${editingId ? "bg-gray-50 cursor-not-allowed text-gray-500 border-gray-300" : ""}`}
                 />
-                  {errors.cedula && (
-                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
+                {errors.cedula && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {editingId && (
+                  <p className="text-sm text-gray-500 italic">La cédula no puede modificarse durante la edición</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -226,42 +232,30 @@ export default function Personal() {
                   placeholder="Ingrese el nombre"
                   value={formData.name}
                   onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
-                    setErrors({ ...errors, name: false });
+                    setFormData({ ...formData, name: e.target.value })
+                    setErrors({ ...errors, name: false })
                   }}
-                  className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.name ? "border-red-500" : ""
-                  }`}
+                  className={`border-violet-200 focus:ring-violet-500 ${errors.name ? "border-red-500" : ""}`}
                 />
-                {errors.name && (
-                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
-                )}
+                {errors.name && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Cargo
-                </label>
+                <label className="text-sm font-medium text-violet-700">Cargo</label>
                 <Input
                   type="text"
                   placeholder="Ingrese el cargo"
                   value={formData.cargo}
-                  onChange={(e) =>
-                    setFormData({ ...formData, cargo: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, cargo: e.target.value })}
                   className="border-violet-200 focus:ring-violet-500"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Área
-                </label>
+                <label className="text-sm font-medium text-violet-700">Área</label>
                 <Input
                   placeholder="Ingrese el área"
                   type="text"
                   value={formData.area}
-                  onChange={(e) =>
-                    setFormData({ ...formData, area: e.target.value })
-                  }
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   className="border-violet-200 focus:ring-violet-500"
                 />
               </div>
@@ -275,27 +269,37 @@ export default function Personal() {
                   placeholder="Ingrese el correo"
                   value={formData.correo}
                   onChange={(e) => {
-                    setFormData({ ...formData, correo: e.target.value });
-                    setErrors({ ...errors, correo: false });
+                    setFormData({ ...formData, correo: e.target.value })
+                    setErrors({ ...errors, correo: false })
                   }}
-                  className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.correo ? "border-red-500" : ""
-                  }`}
+                  className={`border-violet-200 focus:ring-violet-500 ${errors.correo ? "border-red-500" : ""}`}
                 />
                 {errors.correo && (
                   <p className="text-sm text-red-500">
-                    {!formData.correo.trim()
-                      ? "Este campo es obligatorio"
-                      : "Ingrese un correo válido"}
+                    {!formData.correo.trim() ? "Este campo es obligatorio" : "Ingrese un correo válido"}
                   </p>
                 )}
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-violet-700">
+                  Notificaciones
+                </label>
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox
+                    id="notifica"
+                    checked={formData.notifica}
+                    onCheckedChange={(checked) => {
+                      setFormData({ ...formData, notifica: checked as boolean })
+                    }}
+                  />
+                  <label htmlFor="notifica" className="text-sm text-violet-700 cursor-pointer">
+                    Recibir notificaciones por correo
+                  </label>
+                </div>
+              </div>
             </div>
             <div className="flex gap-2">
-              <Button
-                type="submit"
-                className="bg-orange-500 hover:bg-violet-900 text-white"
-              >
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
                 {editingId ? (
                   <>
                     <Pencil className="w-4 h-4 mr-2" />
@@ -337,12 +341,13 @@ export default function Personal() {
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Cargo</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Área</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Correo</TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Notificaciones</TableHead>
                     <TableHead className="bg-violet-50 font-semibold text-violet-900">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {employees.map((employee) => (
-                    <TableRow 
+                    <TableRow
                       key={employee.cedula}
                       className={`border-b hover:bg-violet-50/50 transition-colors duration-200 ${
                         editingId === employee.cedula ? "bg-violet-50" : ""
@@ -353,6 +358,15 @@ export default function Personal() {
                       <TableCell>{employee.cargo}</TableCell>
                       <TableCell>{employee.area}</TableCell>
                       <TableCell>{employee.correo}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            employee.notifica ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {employee.notifica ? "Activa" : "Desactivo"}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
@@ -382,5 +396,5 @@ export default function Personal() {
         </Card>
       </div>
     </div>
-  );
+  )
 }
