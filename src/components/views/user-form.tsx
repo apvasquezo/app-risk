@@ -168,6 +168,9 @@ export default function UserManagement() {
   };
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este usuario?");
+    if (!confirmDelete) return;
+
     try {
       const token = localStorage.getItem("token");
       await axios.delete(`http://localhost:8000/users/${id}`, {
@@ -175,23 +178,22 @@ export default function UserManagement() {
           Authorization: `Bearer ${token}`,
         },
       });
-  
+
       setUsers(users.filter(user => user.id !== id));
       if (editingId === id) resetForm();
-  
+
       toast({
         title: "Usuario eliminado",
         description: "El usuario ha sido eliminado exitosamente.",
       });
     } catch (error) {
-      console.log(error)
+      console.log(error);
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al eliminar el usuario.",
       });
     }
-  
   };
   
   return (

@@ -143,7 +143,6 @@ export default function MacroprocessPage() {
   const handleDelete =async (id: number) => {
     const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este macroproceso?");
     if (!confirmDelete) return;
-
     try {
       await api.delete(`/macroprocesses/${id}`);
       setMacroprocesses(macroprocesses.filter((mp) => mp.id !== id));
