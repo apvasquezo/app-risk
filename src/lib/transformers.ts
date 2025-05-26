@@ -48,12 +48,11 @@ export interface TypeControl {
 }
 
 export interface RawUser {
-  id_user: string;
+  id_user:string,
   username: string;
   role_id: number;
 }
 
-// Interface frontend (ya transformado)
 export interface User {
   id: string;
   usuario: string;
@@ -61,6 +60,23 @@ export interface User {
   rol: string;
 }
 
+interface RawEmployee {
+  id_personal: string
+  name: string
+  position: string
+  area: string
+  email: string
+  notify: boolean
+}
+
+export interface Employee {
+  cedula: string
+  name: string
+  cargo: string
+  area: string
+  correo: string
+  notifica: boolean
+}
 // Transformadores
 export const transformChannels = (data: Channel[]) => {
   return data.map((ch) => ({
@@ -100,14 +116,14 @@ export const transformControls = (data: Control[]) => {
   }));
 };
 
-export const transformEmployees = (data: Employee[]) => {
+export const transformEmployees = (data: RawEmployee[]) => {
   return data.map((emp) => ({
-    id: emp.id_employee,
-    cedula: emp.cedula,
-    name: emp.nombre,
-    cargo: emp.cargo,
+    cedula: emp.id_personal,
+    name: emp.name,
+    cargo: emp.position,
     area: emp.area,
-    correo: emp.correo,
+    correo: emp.email,
+    notifica:emp.notify
   }));
 };
 
@@ -134,3 +150,4 @@ export const transformUsers = (data: RawUser[]): User[] => {
     rol: user.role_id === 1 ? "super" : "admin",
   }));
 };
+
