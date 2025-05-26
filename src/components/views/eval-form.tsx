@@ -157,7 +157,8 @@ export default function ControlEvaluationForm() {
         })
       }
       resetForm()
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",

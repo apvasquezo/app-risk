@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformEmployees } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -14,9 +15,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface Employee {
-  id: string;
   cedula: string;
   name: string;
   cargo: string;
@@ -24,7 +25,7 @@ interface Employee {
   correo: string;
 }
 
-export default function Home() {
+export default function Personal() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     cedula: "",
@@ -33,34 +34,30 @@ export default function Home() {
     area: "",
     correo: "",
   });
-
   const [editingId, setEditingId] = useState<string | null>(null);
-
   const [errors, setErrors] = useState({
     cedula: false,
     name: false,
     correo: false,
   });
+  const [employees, setEmployees] = useState<Employee[]>([]);
 
-  // Temporary mock data - will be replaced with API data
-  const [employees, setEmployees] = useState<Employee[]>([
-    {
-      id: "1",
-      cedula: "123456789",
-      name: "Juan Pérez",
-      cargo: "Desarrollador",
-      area: "TI",
-      correo: "juan@example.com",
-    },
-    {
-      id: "2",
-      cedula: "987654321",
-      name: "María González",
-      cargo: "Diseñadora UX",
-      area: "Diseño",
-      correo: "maria@example.com",
-    }
-  ]);
+  useEffect(() => {
+    const fetchEmployes = async () => {
+      try {
+        const response = await api.get("/channels" );
+        setEmployees(transformEmployees(response.data));
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar personal",
+          description: "No se pudo obtener el listado de personal desde el servidor.",
+        });
+      }
+    };
+    fetchEmployes();
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
@@ -68,7 +65,6 @@ export default function Home() {
       name: !formData.name.trim(),
       correo: !formData.correo.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.correo),
     };
-
     setErrors(newErrors);
     return !Object.values(newErrors).some(Boolean);
   };
@@ -90,8 +86,7 @@ export default function Home() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault();   
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -100,24 +95,47 @@ export default function Home() {
       });
       return;
     }
-
     try {
       if (editingId) {
-        // Update existing employee
+        await api.put(`/personal/${editingId}`, {
+          cedula: formData.cedula,
+          name: formData.name,
+          cargo: formData.cargo,
+          area: formData.area,
+          correo: formData.correo,
+        });
         setEmployees(employees.map(emp => 
-          emp.id === editingId 
+          emp.cedula === editingId 
             ? { ...formData, id: editingId }
             : emp
-        ));
+          )
+        );
         toast({
           title: "Empleado actualizado",
           description: "Los datos del empleado han sido actualizados exitosamente.",
         });
       } else {
-        // Add new employee
+        const response = await api.post("/personal", { 
+          cedula: formData.cedula,
+          name: formData.name,
+          cargo: formData.cargo,
+          area: formData.area,
+          correo: formData.correo, 
+        });
+        if (employees.some(emp => emp.cedula === formData.cedula)) {
+          toast({
+            variant: "destructive",
+            title: "Empleado duplicado",
+            description: "Ya existe un empleado con esa cédula.",
+          });
+          return;
+        }
         const newEmployee = {
-          ...formData,
-          id: Date.now().toString(), // Temporary ID generation
+          cedula: response.data.cedula,
+          name:  response.data.name,
+          cargo:  response.data.cargo,
+          area:  response.data.area,
+          correo:  response.data.correo, 
         };
         setEmployees([...employees, newEmployee]);
         toast({
@@ -127,6 +145,7 @@ export default function Home() {
       }
       resetForm();
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -137,13 +156,14 @@ export default function Home() {
 
   const handleEdit = (employee: Employee) => {
     setFormData(employee);
-    setEditingId(employee.id);
+    setEditingId(employee.cedula);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     try {
-      setEmployees(employees.filter(emp => emp.id !== id));
+      await api.delete(`/personal/${id}`); 
+      setEmployees(employees.filter(emp => emp.cedula !== id));
       if (editingId === id) {
         resetForm();
       }
@@ -152,6 +172,7 @@ export default function Home() {
         description: "El empleado ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -179,17 +200,19 @@ export default function Home() {
                 </label>
                 <Input
                   required
+                  type="number"
                   placeholder="Ingrese la cédula"
                   value={formData.cedula}
+                  disabled={!!editingId}
                   onChange={(e) => {
                     setFormData({ ...formData, cedula: e.target.value });
                     setErrors({ ...errors, cedula: false });
                   }}
                   className={`border-violet-200 focus:ring-violet-500 ${
                     errors.cedula ? "border-red-500" : ""
-                  }`}
+                  } ${editingId ? "bg-gray-100 cursor-not-allowed" : ""}`}
                 />
-                {errors.cedula && (
+                  {errors.cedula && (
                   <p className="text-sm text-red-500">Este campo es obligatorio</p>
                 )}
               </div>
@@ -199,6 +222,7 @@ export default function Home() {
                 </label>
                 <Input
                   required
+                  type="text"
                   placeholder="Ingrese el nombre"
                   value={formData.name}
                   onChange={(e) => {
@@ -218,6 +242,7 @@ export default function Home() {
                   Cargo
                 </label>
                 <Input
+                  type="text"
                   placeholder="Ingrese el cargo"
                   value={formData.cargo}
                   onChange={(e) =>
@@ -232,6 +257,7 @@ export default function Home() {
                 </label>
                 <Input
                   placeholder="Ingrese el área"
+                  type="text"
                   value={formData.area}
                   onChange={(e) =>
                     setFormData({ ...formData, area: e.target.value })
@@ -317,9 +343,9 @@ export default function Home() {
                 <TableBody>
                   {employees.map((employee) => (
                     <TableRow 
-                      key={employee.id}
+                      key={employee.cedula}
                       className={`border-b hover:bg-violet-50/50 transition-colors duration-200 ${
-                        editingId === employee.id ? "bg-violet-50" : ""
+                        editingId === employee.cedula ? "bg-violet-50" : ""
                       }`}
                     >
                       <TableCell>{employee.cedula}</TableCell>
@@ -341,7 +367,7 @@ export default function Home() {
                             size="sm"
                             variant="outline"
                             className="text-orange-600 border-orange-600 hover:bg-orange-50"
-                            onClick={() => handleDelete(employee.id)}
+                            onClick={() => handleDelete(employee.cedula)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

@@ -8,13 +8,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/context/AuthContext";
-import { Eye, EyeOff, Lock, Mail, User } from "lucide-react"
-
-
+import { Eye, EyeOff, Lock, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { toast } from "sonner";
-import axios from 'axios';
+import axios from "axios"
 
 export default function LoginForm() {
   const { setUser } = useAuth();
@@ -40,7 +38,6 @@ export default function LoginForm() {
       console.log("este es mi rol", role)
       switch (role) {
         case "super":
-          //router.push("/super");
           console.log("Redirigiendo a", role);
           window.location.href = "/super";
           break;
@@ -53,8 +50,12 @@ export default function LoginForm() {
       }
   
       toast.success("Inicio de sesión exitoso");
-    } catch (error: any) {
-      console.error("Error en el inicio de sesión:", error.response?.data?.detail || error.message);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error("Error en el inicio de sesión:", error.response?.data?.detail || error.message);
+      } else {
+        console.error("Error inesperado:", error);
+      }
       toast.error("Credenciales inválidas");
     }
   }

@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import Image from "next/image";
 import { useState } from "react"
 import { FaUserCircle } from "react-icons/fa"
 import { Button } from "@/components/ui/button"
@@ -46,10 +46,12 @@ export default function ProfileForm() {
             <div className="flex items-center justify-center flex-col space-y-4 mb-6">
               <div className="relative w-32 h-32">
                 {formData.avatar ? (
-                  <img
+                  <Image
                     src={formData.avatar || "/placeholder.svg"}
                     alt="Avatar"
-                    className="w-full h-full object-cover rounded-full border-4 border-violet-500 shadow-lg"
+                    width={128}
+                    height={128}
+                    className="object-cover rounded-full border-4 border-violet-500 shadow-lg"
                   />
                 ) : (
                   <FaUserCircle className="w-full h-full text-violet-200 rounded-full border-4 border-violet-300 shadow-lg" />

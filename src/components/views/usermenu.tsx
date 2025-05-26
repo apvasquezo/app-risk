@@ -3,33 +3,29 @@
 import { useState } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation"; // Importa useRouter para redirigir
+import { useRouter } from "next/navigation"; 
 
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const router = useRouter(); // Inicializa useRouter
+  const router = useRouter(); 
 
   const handleToggle = () => setOpen(!open);
   const handleProfile = () => {
-    // Redireccionar a la página de perfil
     console.log("Ir al perfil");
-    router.push("/profile"); // Suponiendo que el perfil está en /perfil
+    router.push("/profile");
   };
   const handleLogout = () => {
-    // Mostrar el modal de confirmación
     setShowModal(true);
   };
 
   const confirmLogout = () => {
-    // Aquí agregarías la lógica para cerrar sesión, como eliminar el token o la sesión
     console.log("Cerrar sesión");
     setShowModal(false);
-    router.push("/"); // Redirigir a la página principal después del logout
+    router.push("/"); 
   };
 
   const cancelLogout = () => {
-    // Cerrar el modal sin hacer nada
     setShowModal(false);
   };
 
@@ -40,9 +36,7 @@ export default function UserMenu() {
       </div>
 
       {open && (
-
-        <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-300 rounded-md shadow-md z-50 bg-transparent backdrop-blur-sm">
-
+        <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-300 rounded-md shadow-md z-50 backdrop-blur-sm">
           <button
             onClick={handleProfile}
             className="block w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-gray-100"

@@ -34,7 +34,7 @@ export default function RiskCategories() {
       try {
         const response = await api.get("/risk-categories");
         setCategory(transformCategories(response.data));
-      } catch (error) {
+      } catch {
         toast({
           variant: "destructive",
           title: "Error al cargar categorías",
@@ -43,7 +43,7 @@ export default function RiskCategories() {
       }
     };
     fetchCategories();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = { name: !formData.name.trim() };
@@ -96,7 +96,7 @@ export default function RiskCategories() {
         });
       }
       resetForm();
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error",
@@ -119,7 +119,7 @@ export default function RiskCategories() {
         description: "La categoría ha sido eliminada exitosamente.",
       });
       if (editingId === id) resetForm();
-    } catch (error) {
+    } catch {
       toast({
         variant: "destructive",
         title: "Error al eliminar",

@@ -6,6 +6,8 @@ import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformUsers } from "@/lib/transformers";
+import type { RawUser } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -48,16 +50,9 @@ export default function UserManagement() {
             Authorization: `Bearer ${token}`, 
           },
         });
-        const rawUsers = response.data;
-        const transformedUsers = rawUsers.map((user: any) => ({
-          id: user.id_user,
-          usuario: user.username,
-          contraseña: "",
-          rol: user.role_id === 1 ? "super" : "admin",
-        }));
-
-        setUsers(transformedUsers);
+        setUsers(transformUsers(response.data as RawUser[]));
       } catch (error) {
+        console.log(error)
         toast({
           variant: "destructive",
           title: "Error al cargar usuarios",
@@ -67,7 +62,7 @@ export default function UserManagement() {
     };
   
     fetchUsers();
-  }, []);
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
@@ -83,7 +78,7 @@ export default function UserManagement() {
     setFormData({
       usuario: "",
       contraseña: "",
-      rol: "Supervisor",
+      rol: "super",
     });
     setEditingId(null);
     setErrors({
@@ -112,70 +107,60 @@ export default function UserManagement() {
         description: "No se encontró un token de autenticación.",
       });
       return;
-    }
-  
+    } 
     try {
       const payload = {
         username: formData.usuario,
         password: formData.contraseña,
         role_id: formData.rol === "super" ? 1 : 2 
       };
-      console.log ("payload", payload)
       if (editingId) {
-        // Actualización (PUT)
         console.log("user_id ", editingId)
         await axios.put(`http://localhost:8000/users/${editingId}`, payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        });
-  
+        }); 
         setUsers(users.map(user =>
           user.id === editingId ? { ...formData, id: editingId } : user
-        ));
-  
+        ));  
         toast({
           title: "Usuario actualizado",
           description: "Los datos del usuario han sido actualizados exitosamente.",
-        });
-  
+        }); 
       } else {
-        // Registro (POST)
         const response = await axios.post("http://localhost:8000/users", payload, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
   
-        const rawUser = response.data;
-        const formattedUser = {
-          id: rawUser.id_user,
-          usuario: rawUser.username,
-          contraseña: "", 
-          rol: rawUser.role_id === 1 ? "super" : "admin" 
-        };
-        
-        setUsers([...users, formattedUser]);
-  
+        const [formattedUser] = transformUsers([response.data as RawUser]);     
+        setUsers([...users, formattedUser]);  
         toast({
           title: "Usuario registrado",
           description: "El nuevo usuario ha sido registrado exitosamente.",
         });
-      }
-  
-      resetForm();
-  
-    } catch (error: any) {
+      } 
+      resetForm(); 
+    } catch (error) {
       console.error("Error al procesar usuario:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
-      });
+      if (axios.isAxiosError(error)) {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: error.response?.data?.detail || "Ocurrió un error al procesar la solicitud.",
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error inesperado.",
+        });
+      }
     }
   };
   
-
   const handleEdit = (user: User) => {
     setFormData(user);
     setEditingId(user.id);
@@ -199,6 +184,7 @@ export default function UserManagement() {
         description: "El usuario ha sido eliminado exitosamente.",
       });
     } catch (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",
@@ -208,7 +194,6 @@ export default function UserManagement() {
   
   };
   
-
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-8">
