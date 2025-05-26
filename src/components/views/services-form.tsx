@@ -89,6 +89,9 @@ export default function Services() {
   };
 
   const handleDelete = (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este servicio?");
+    if (!confirmDelete) return;
+    
     setServices(services.filter((service) => service.id !== id));
     toast({
       title: "Servicio eliminado",

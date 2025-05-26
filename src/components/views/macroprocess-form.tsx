@@ -121,6 +121,8 @@ export default function Macroprocess() {
   };
 
   const handleDelete = (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este macroproceso?");
+    if (!confirmDelete) return;
     try {
       setMacroprocesses(macroprocesses.filter(mp => mp.id !== id));
       if (editingId === id) {
