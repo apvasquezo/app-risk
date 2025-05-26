@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { UserPlus, Users, Pencil, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, Pencil, Trash2, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -14,95 +14,115 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface Macroprocess {
-  id: string;
-  name: string;
+  id: number;
   description: string;
 }
 
-export default function Macroprocess() {
+interface RawMacro {
+  id_macro: number;
+  description: string;
+}
+
+export default function MacroprocessPage() {
   const { toast } = useToast();
+
   const [formData, setFormData] = useState({
-    name: "",
     description: "",
   });
 
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const [errors, setErrors] = useState({
-    name: false,
     description: false,
   });
 
-  const [macroprocesses, setMacroprocesses] = useState<Macroprocess[]>([
-    {id: "1",
-    name: "Gestión Estratégica",
-    description: "Incluye la planificación y dirección estratégica de la organización.",
-  },
-  {
-    id: "2",
-    name: "Misionales",
-    description: "Engloba los procesos relacionados directamente con la misión de la organización.",
-  },
-  ]);
+  const [macroprocesses, setMacroprocesses] = useState<Macroprocess[]>([]);
+
+  useEffect(() => {
+    const fetchMacroprocesses = async () => {
+      try {
+        const response = await api.get("/macroprocesses");
+        const mapped: Macroprocess[] = response.data.map((item: RawMacro) => ({
+          id: item.id_macro,
+          description: item.description,
+        }));
+        setMacroprocesses(mapped);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar macroprocesos",
+          description: "No se pudo obtener el listado de macroprocesos del servidor.",
+        });
+      }
+    };
+    fetchMacroprocesses();
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = {
-      name: !formData.name.trim(),
       description: !formData.description.trim(),
     };
-
     setErrors(newErrors);
-    return !Object.values(newErrors).some(Boolean);
+    return !newErrors.description;
   };
 
   const resetForm = () => {
-    setFormData({
-      name: "",
-      description: "",
-    });
+    setFormData({ description: "" });
     setEditingId(null);
-    setErrors({
-      name: false,
-      description: false,
-    });
+    setErrors({ description: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
-        description: "Por favor complete todos los campos obligatorios correctamente.",
+        description: "La descripción es obligatoria.",
       });
       return;
     }
 
     try {
-      if (editingId) {
-        setMacroprocesses(macroprocesses.map(mp => 
-          mp.id === editingId 
-            ? { ...formData, id: editingId } 
-            : mp
-        ));
+      if (editingId !== null) {
+        await api.put(`/macroprocesses/${editingId}`, {
+          description: formData.description,
+        });
+
+        setMacroprocesses(
+          macroprocesses.map((mp) =>
+            mp.id === editingId
+              ? { id: editingId, description: formData.description }
+              : mp
+          )
+        );
+
         toast({
           title: "Macroproceso actualizado",
           description: "Los datos del macroproceso han sido actualizados exitosamente.",
         });
       } else {
-        const newMacroprocess = {
-          ...formData,
-          id: Date.now().toString(),
+        const response = await api.post("/macroprocesses", {
+          description: formData.description,
+        });
+
+        const newMacroprocess: Macroprocess = {
+          id: response.data.id_macro,
+          description: response.data.description,
         };
+
         setMacroprocesses([...macroprocesses, newMacroprocess]);
+
         toast({
           title: "Macroproceso registrado",
           description: "El nuevo macroproceso ha sido registrado exitosamente.",
         });
       }
+
       resetForm();
     } catch (error) {
       console.error(error);
@@ -115,17 +135,20 @@ export default function Macroprocess() {
   };
 
   const handleEdit = (macroprocess: Macroprocess) => {
-    setFormData(macroprocess);
+    setFormData({ description: macroprocess.description });
     setEditingId(macroprocess.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete =async (id: number) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este macroproceso?");
+    if (!confirmDelete) return;
+
     try {
-      setMacroprocesses(macroprocesses.filter(mp => mp.id !== id));
-      if (editingId === id) {
-        resetForm();
-      }
+      await api.delete(`/macroprocesses/${id}`);
+      setMacroprocesses(macroprocesses.filter((mp) => mp.id !== id));
+      if (editingId === id) resetForm();
+
       toast({
         title: "Macroproceso eliminado",
         description: "El macroproceso ha sido eliminado exitosamente.",
@@ -145,60 +168,34 @@ export default function Macroprocess() {
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center gap-4">
           <Users className="h-8 w-8 text-violet-600" />
-          <h1 className="text-3xl font-bold text-violet-900">
-            Gestión de Macroprocesos
-          </h1>
+          <h1 className="text-3xl font-bold text-violet-900">Gestión de Macroprocesos</h1>
         </div>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500">
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Nombre del Macroproceso <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  required
-                  placeholder="Ingrese el macroproceso"
-                  value={formData.name}
-                  onChange={(e) => {
-                    setFormData({ ...formData, name: e.target.value });
-                    setErrors({ ...errors, name: false });
-                  }}
-                  className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.name ? "border-red-500" : ""
-                  }`}
-                />
-                {errors.name && (
-                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">
-                  Descripción <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  required
-                  placeholder="Ingrese la descripción"
-                  value={formData.description}
-                  onChange={(e) => {
-                    setFormData({ ...formData, description: e.target.value });
-                    setErrors({ ...errors, description: false });
-                  }}
-                  className={`border-violet-200 focus:ring-violet-500 ${
-                    errors.description ? "border-red-500" : ""
-                  }`}
-                />
-                {errors.description && (
-                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
-                )}
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-violet-700">
+                Descripción <span className="text-red-500">*</span>
+              </label>
+              <Input
+                required
+                placeholder="Ingrese la descripción"
+                value={formData.description}
+                onChange={(e) => {
+                  setFormData({ description: e.target.value });
+                  setErrors({ description: false });
+                }}
+                className={`border-violet-200 focus:ring-violet-500 ${
+                  errors.description ? "border-red-500" : ""
+                }`}
+              />
+              {errors.description && (
+                <p className="text-sm text-red-500">Este campo es obligatorio</p>
+              )}
             </div>
+
             <div className="flex gap-2">
-              <Button
-                type="submit"
-                className="bg-orange-500 hover:bg-violet-900 text-white"
-              >
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
                 {editingId ? (
                   <>
                     <Pencil className="w-4 h-4 mr-2" />
@@ -235,20 +232,22 @@ export default function Macroprocess() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Nombre</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Descripción</TableHead>
-                    <TableHead className="bg-violet-50 font-semibold text-violet-900">Acciones</TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">
+                      Descripción
+                    </TableHead>
+                    <TableHead className="bg-violet-50 font-semibold text-violet-900">
+                      Acciones
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {macroprocesses.map((macroprocess) => (
-                    <TableRow 
+                    <TableRow
                       key={macroprocess.id}
                       className={`border-b hover:bg-violet-50/50 transition-colors duration-200 ${
                         editingId === macroprocess.id ? "bg-violet-50" : ""
                       }`}
                     >
-                      <TableCell>{macroprocess.name}</TableCell>
                       <TableCell>{macroprocess.description}</TableCell>
                       <TableCell>
                         <div className="flex gap-2">

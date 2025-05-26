@@ -113,6 +113,8 @@ export default function Channels() {
   };
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este canal?");
+    if (!confirmDelete) return;
     try {
       await api.delete(`/channels/${id}`); 
       setChannels(channels.filter((ch) => ch.id !== id)); 

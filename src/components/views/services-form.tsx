@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,22 +14,45 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios"
 
 interface Service {
-  id: string;
+  id: number;
   name: string;
 }
+interface RawProduct {
+  id_product: number;
+  description: string;
+}
+
 
 export default function Services() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ name: "" });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [errors, setErrors] = useState({ name: false });
+  const [services, setServices] = useState<Service[]>([]);
 
-  const [services, setServices] = useState<Service[]>([
-    { id: "1", name: "Ahorro" },
-    { id: "2", name: "Crédito" },
-  ]);
+  useEffect(() => {
+    const fetchRiskFactors = async () => {
+      try {
+        const response = await api.get("/products");
+        const mapped: Service[] = response.data.map((item: RawProduct) => ({
+          id: item.id_product,
+          name: item.description,
+        }));
+        setServices(mapped);
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar servicios",
+          description: "No se pudo obtener el listado de servicios el servidor.",
+        });
+      }
+    };
+    fetchRiskFactors();
+  }, [toast]);
 
   const validateForm = () => {
     const newErrors = { name: !formData.name.trim() };
@@ -53,12 +76,15 @@ export default function Services() {
       });
       return;
     }
-
+  
     try {
-      if (editingId) {
+      if (editingId !== null) {
+        await api.put(`/products/${editingId}`, {
+          description: formData.name,
+        });
         setServices(
           services.map((service) =>
-            service.id === editingId ? { ...formData, id: editingId } : service
+            service.id === editingId ? { id: editingId, name: formData.name } : service
           )
         );
         toast({
@@ -66,7 +92,13 @@ export default function Services() {
           description: "El servicio ha sido actualizado exitosamente.",
         });
       } else {
-        const newService = { ...formData, id: Date.now().toString() };
+        const response = await api.post("/products", {
+          description: formData.name,
+        });
+        const newService: Service = {
+          id: response.data.id_product,
+          name: response.data.description,
+        };
         setServices([...services, newService]);
         toast({
           title: "Servicio registrado",
@@ -84,18 +116,31 @@ export default function Services() {
   };
 
   const handleEdit = (service: Service) => {
-    setFormData(service);
+    setFormData({ name: service.name });
     setEditingId(service.id);
   };
 
-  const handleDelete = (id: string) => {
-    setServices(services.filter((service) => service.id !== id));
-    toast({
-      title: "Servicio eliminado",
-      description: "El servicio ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
+  const handleDelete = async (id: number) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este servicio?");
+    if (!confirmDelete) return;
+    try {
+      await api.delete(`/products/${id}`);
+      setServices(services.filter((service) => service.id !== id));
+      toast({
+        title: "Servicio eliminado",
+        description: "El servicio ha sido eliminado exitosamente.",
+      });
+      if (editingId === id) resetForm();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Ocurrió un error al eliminar el servicio",
+      });
+    }
   };
+  
 
   return (
     <div className="min-h-screen p-8">
