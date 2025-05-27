@@ -20,12 +20,19 @@ export default function RecuperarContrasena() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Simular verificación de usuario (en producción esto sería una llamada a la API)
-    if (formData.username === "admin" && formData.email === "admin@example.com") {
+    try {
+      const response = await fetch("http://localhost:3000/recoverpassword", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) throw new Error("Error en la solicitud");
+
       setIsSent(true);
-      toast.success("Se han enviado las instrucciones a tu correo");
-    } else {
-      toast.error("El usuario o correo electrónico no coinciden");
+      toast.success("Se han enviado las instrucciones a tu correo.");
+    } catch (error) {
+      toast.error("Usuario o correo incorrecto.");
     }
   };
 

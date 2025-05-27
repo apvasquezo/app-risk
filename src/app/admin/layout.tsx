@@ -11,16 +11,16 @@ import {
   List,
   NotebookPen,
   Grid2x2Check,
-  Settings,
-  HelpCircle,
   FileBarChart,
+  HelpCircle,
+  Settings,
   Bell,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import AuthMiddleware from "@/components/middleware/authMiddleware";
+import UserMenu from "@/components/views/usermenu";
 
 const sidebarItems = [
   { title: "Procesos", icon: List, href: "/admin/process" },
@@ -43,6 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Top Navigation */}
         <nav className="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
           <div className="px-20 h-16 flex justify-between items-center">
+            {/* Logo */}
             <div className="flex items-center space-x-4">
               <Image
                 src="/logo_orisk.png"
@@ -53,21 +54,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 priority
               />
             </div>
+
+            {/* Right Side Icons */}
             <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-100 rounded-full">
-                <HelpCircle className="h-5 w-5 text-gray-600" />
-              </button>
               <button className="p-2 hover:bg-gray-100 rounded-full">
                 <Bell className="h-5 w-5 text-gray-600" />
               </button>
               <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Settings className="h-5 w-5 text-gray-600" />
+                <HelpCircle className="h-5 w-5 text-gray-600" />
               </button>
               <button className="p-2 hover:bg-gray-100 rounded-full">
-                <Avatar>
-                  <AvatarImage src="/user.gif" />
-                </Avatar>
+                <Settings className="h-5 w-5 text-gray-600" />
               </button>
+              <UserMenu />
             </div>
           </div>
         </nav>

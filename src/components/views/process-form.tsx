@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,37 +21,57 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import api from "@/lib/axios";
 
 interface Process {
   id: string;
   subprocess: string;
   description: string;
-}
-
-const predefinedSubprocesses = [
-  "Procesos estratégicos",
-  "Procesos misionales",
-  "Procesos de apoyo y control",
-];
+};
 
 export default function ProcessManagement() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ subprocess: "", description: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [errors, setErrors] = useState({ subprocess: false, description: false });
+  const [macroprocesses, setMacroprocesses] = useState<string[]>([]);
 
-  const [processes, setProcesses] = useState<Process[]>([
-    {
-      id: "1",
-      subprocess: "Procesos estratégicos",
-      description: "Procesos orientados a definir la dirección institucional.",
-    },
-    {
-      id: "2",
-      subprocess: "Procesos misionales",
-      description: "Procesos centrales relacionados con el cumplimiento del objeto institucional.",
-    },
-  ]);
+  useEffect(() => {
+        const fetchMacroprocesses= async () => {
+          try {
+            const response = await api.get("/macroprocesses" );
+            setMacroprocesses(response.data);
+          } catch (error) {
+            console.error(error);
+            toast({
+              variant: "destructive",
+              title: "Error al cargar canales",
+              description: "No se pudo obtener el listado de canales desde el servidor.",
+            });
+          }
+        };
+        fetchMacroprocesses();
+      }, [toast]);
+
+
+  const [processes, setProcesses] = useState<Process[]>([]);
+   
+  useEffect(() => {
+  const fetchProcesses = async () => {
+    try {
+      const response = await api.get("/processes"); 
+      setProcesses(response.data);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error al cargar procesos",
+        description: "No se pudieron obtener los procesos desde la base de datos.",
+      });
+    }
+  };
+
+  fetchProcesses();
+}, []);
 
   const validateForm = () => {
     const newErrors = {
@@ -154,7 +174,7 @@ export default function ProcessManagement() {
                   <SelectValue placeholder="Seleccione un microproceso" />
                 </SelectTrigger>
                 <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md text-black">
-                  {predefinedSubprocesses.map((item) => (
+                  {macroprocesses.map((item) => (
                     <SelectItem
                       key={item}
                       value={item}
