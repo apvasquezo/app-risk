@@ -4,11 +4,6 @@ export interface Channel {
   description: string;
 }
 
-export interface Category {
-  id_category: number;
-  description: string;
-}
-
 export interface Cause {
   id_cause: number;
   description: string;
@@ -36,11 +31,6 @@ export interface Employee {
   correo: string;
 }
 
-export interface RiskFactor {
-  id_factor: number;
-  tipo: string;
-  descripcion: string;
-}
 
 export interface TypeControl {
   id_typecontrol: number;
@@ -77,18 +67,13 @@ export interface Employee {
   correo: string
   notifica: boolean
 }
+
+
 // Transformadores
 export const transformChannels = (data: Channel[]) => {
   return data.map((ch) => ({
     id: String(ch.id_channel),
     name: ch.description,
-  }));
-};
-
-export const transformCategories = (data: Category[]) => {
-  return data.map((cat) => ({
-    id_category: String(cat.id_category),
-    name: cat.description,
   }));
 };
 
@@ -127,21 +112,31 @@ export const transformEmployees = (data: RawEmployee[]) => {
   }));
 };
 
+export interface RiskFactor {
+  id_factor: number
+  risk_type_id: number
+  description: string
+}
 export const transformRiskFactors = (data: RiskFactor[]) => {
   return data.map((factor) => ({
-    id: String(factor.id_factor),
-    type: factor.tipo,
-    description: factor.descripcion,
-  }));
-};
+    id: factor.id_factor.toString(),
+    type_id: factor.risk_type_id.toString(),
+    type: "", 
+    description: factor.description,
+  }))
+}
+
+export interface TypeControl {
+  id_controltype: number
+  description: string
+}
 
 export const transformTypeControl = (data: TypeControl[]) => {
   return data.map((typecontrol) => ({
-    id: typecontrol.id_typecontrol,
+    id: typecontrol.id_controltype, 
     description: typecontrol.description,
   }));
 };
-
 export const transformUsers = (data: RawUser[]): User[] => {
   return data.map((user) => ({
     id: user.id_user,
@@ -151,3 +146,61 @@ export const transformUsers = (data: RawUser[]): User[] => {
   }));
 };
 
+export interface TypeRisk {
+  id_risktype: number
+  category_id: number
+  description: string
+}
+
+export const transformTypeRisk = (data: TypeRisk[]) => {
+  return data.map((typerisk) => ({
+    id_risk: typerisk.id_risktype.toString(), 
+    category_id: typerisk.category_id.toString(), 
+    category: "",
+    description: typerisk.description,
+  }))
+}
+
+export interface RawCategory {
+  id_riskcategory: number
+  description: string
+}
+
+export const transformCategory = (data: RawCategory[]) => {
+  return data.map((categories) => ({
+    id_category: categories.id_riskcategory.toString(), // Convertir a string para consistencia
+    name: categories.description,
+  }))
+}
+
+export interface Probability {
+  level: number
+  description: string
+  definition: string
+  criteria_por: number
+}
+
+export const transformProbability = (data: Probability[]) => {
+  return data.map((prob) => ({
+    level: prob.level,
+    description: prob.description,
+    definition: prob.definition,
+    criteria_por: prob.criteria_por
+  }));
+};
+
+export interface Impact {
+  level: number
+  description: string
+  definition: string
+  criteria_smlv: number
+}
+
+export const transformImpact = (data: Impact[]) => {
+  return data.map((impact) => ({
+    level: impact.level,
+    description: impact.description,
+    definition: impact.definition,
+    criteria_smlv: impact.criteria_smlv,
+  }))
+}

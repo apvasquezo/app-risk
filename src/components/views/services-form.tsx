@@ -82,7 +82,7 @@ export default function Services() {
         await api.put(`/products/${editingId}`, {
           description: formData.name,
         });
-        setServices(
+         setServices(
           services.map((service) =>
             service.id === editingId ? { id: editingId, name: formData.name } : service
           )

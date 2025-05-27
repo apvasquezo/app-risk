@@ -32,13 +32,10 @@ export default function MacroprocessPage() {
   const [formData, setFormData] = useState({
     description: "",
   });
-
   const [editingId, setEditingId] = useState<number | null>(null);
-
   const [errors, setErrors] = useState({
     description: false,
   });
-
   const [macroprocesses, setMacroprocesses] = useState<Macroprocess[]>([]);
 
   useEffect(() => {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformTypeControl } from "@/lib/transformers"
 import {
   Table,
   TableBody,
@@ -14,23 +15,40 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-//import { transformTypeControl } from "@/lib/transformers"
+import api from "@/lib/axios";
+
 interface ControlType {
-  id: string;
+  id: number;
   description: string;
 }
 
 export default function ControlTypes() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({ description: "" });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState(false);
+  const [controlTypes, setControlTypes] = useState<ControlType[]>([]);
 
-  const [controlTypes, setControlTypes] = useState<ControlType[]>([
-    { id: "1", description: "Preventivo" },
-    { id: "2", description: "Detectivo" },
-    { id: "3", description: "Correctivo" },
-  ]);
+  useEffect(() => {
+    const fetchControlTypes = async () => {
+      try {
+        const response = await api.get("/risk-control-types");  
+        console.log("Datos recibidos:", response.data);
+        console.log("mapeo ",transformTypeControl(response.data) )
+        setControlTypes(transformTypeControl(response.data));
+      } catch (error) {
+        console.error(error);
+        toast({
+          variant: "destructive",
+          title: "Error al cargar tipos de control",
+          description: "No se pudo obtener el listado desde el servidor.",
+        });
+      }
+    };
+  
+    fetchControlTypes();
+  }, [toast]);
+  
 
   const validateForm = () => {
     const hasError = !formData.description.trim();
@@ -44,8 +62,9 @@ export default function ControlTypes() {
     setError(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -55,26 +74,51 @@ export default function ControlTypes() {
       return;
     }
 
-    if (editingId) {
-      setControlTypes(
-        controlTypes.map((control) =>
-          control.id === editingId ? { ...formData, id: editingId } : control
-        )
-      );
+    try {
+      if (editingId !== null) {
+        await api.put(`/risk-control-types/${editingId}`, {
+          description: formData.description,
+        });
+
+        setControlTypes(
+          controlTypes.map((control) =>
+            control.id === editingId
+              ? { id: editingId, description: formData.description }
+              : control
+          )
+        );
+
+        toast({
+          title: "Tipo de Control actualizado",
+          description: "El tipo de control ha sido actualizado exitosamente.",
+        });
+      } else {
+        const response = await api.post("/risk-control-types", {
+          description: formData.description,
+        });
+
+       // const newControl = response.data;
+        const newControl: ControlType = {
+          id: response.data.id_controltype,
+          description: response.data.description,
+        };
+        setControlTypes([...controlTypes, newControl]);
+
+        toast({
+          title: "Tipo de Control registrado",
+          description: "El nuevo tipo de control ha sido registrado exitosamente.",
+        });
+      }
+
+      resetForm();
+    } catch (error) {
+      console.log(error);
       toast({
-        title: "Tipo de Control actualizado",
-        description: "El tipo de control ha sido actualizado exitosamente.",
-      });
-    } else {
-      const newControl = { ...formData, id: Date.now().toString() };
-      setControlTypes([...controlTypes, newControl]);
-      toast({
-        title: "Tipo de Control registrado",
-        description: "El nuevo tipo de control ha sido registrado exitosamente.",
+        variant: "destructive",
+        title: "Error",
+        description: "Ocurrió un error al procesar la solicitud.",
       });
     }
-
-    resetForm();
   };
 
   const handleEdit = (control: ControlType) => {
@@ -82,17 +126,30 @@ export default function ControlTypes() {
     setEditingId(control.id);
   };
 
-  const handleDelete = (id: string) => {
-    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este servicio?");
+  const handleDelete = async (id: number) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este tipo de control?");
     if (!confirmDelete) return;
-    setControlTypes(controlTypes.filter((control) => control.id !== id));
-    toast({
-      title: "Tipo de Control eliminado",
-      description: "El tipo de control ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
-  };
 
+    try {
+      await api.delete(`/risk-control-types/${id}`);
+
+      setControlTypes(controlTypes.filter((control) => control.id !== id));
+
+      toast({
+        title: "Tipo de Control eliminado",
+        description: "El tipo de control ha sido eliminado exitosamente.",
+      });
+
+      if (editingId === id) resetForm();
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el tipo de control.",
+      });
+    }
+  };
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Edit3, Trash2 } from "lucide-react";
+import { Edit3, Trash2, Users } from "lucide-react";
+import { Pencil, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { transformCategories } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -18,22 +18,33 @@ import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/axios";
 
 interface RiskCategory {
-  id_category: string;
-  name: string;
+  id: number;
+  description: string;
+}
+
+interface RawCategory {
+  id_riskcategory: number
+  description: string
 }
 
 export default function RiskCategories() {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({ name: "" });
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [errors, setErrors] = useState({ name: false });
-  const [categories, setCategory] = useState<RiskCategory[]>([]);
+  const [formData, setFormData] = useState({ description: "" });
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [errors, setErrors] = useState({ description: false });
+  const [categories, setCategories] = useState<RiskCategory[]>([]);
 
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         const response = await api.get("/risk-categories");
-        setCategory(transformCategories(response.data));
+        console.log("Recibo ", response.data);
+        const mapped: RiskCategory[] = response.data.map((item: RawCategory) => ({
+          id: item.id_riskcategory,
+          description: item.description,
+        }));
+        console.log("mapea ", mapped);
+        setCategories(mapped);
       } catch {
         toast({
           variant: "destructive",
@@ -46,15 +57,16 @@ export default function RiskCategories() {
   }, [toast]);
 
   const validateForm = () => {
-    const newErrors = { name: !formData.name.trim() };
+    const newErrors = { 
+      description: !formData.description.trim() };
     setErrors(newErrors);
-    return !newErrors.name;
+    return !newErrors.description;
   };
 
   const resetForm = () => {
-    setFormData({ name: "" });
+    setFormData({ description: "" });
     setEditingId(null);
-    setErrors({ name: false });
+    setErrors({ description: false });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,13 +80,13 @@ export default function RiskCategories() {
       return;
     }
     try {
-      if (editingId) {
+      if (editingId!== null) {
         await api.put(`/risk-categories/${editingId}`, {
-          description: formData.name,
+          description: formData.description,
         });
-        setCategory(
+        setCategories(
           categories.map((cat) =>
-            cat.id_category === editingId ? { ...cat, name: formData.name } : cat
+            cat.id === editingId ? { id:editingId, description: formData.description } : cat
           )
         );
         toast({
@@ -83,13 +95,13 @@ export default function RiskCategories() {
         });
       } else {
         const response = await api.post("/risk-categories", {
-          description: formData.name,
+          description: formData.description,
         });
-        const newCategory = {
-          id_category: response.data.id_category,
-          name: response.data.description,
+        const newCategory : RiskCategory = {
+          id: response.data.id_category,
+          description: response.data.description,
         };
-        setCategory([...categories, newCategory]);
+        setCategories([...categories, newCategory]);
         toast({
           title: "Categoría registrada",
           description: "La nueva categoría fue registrada correctamente.",
@@ -106,22 +118,25 @@ export default function RiskCategories() {
   };
 
   const handleEdit = (category: RiskCategory) => {
-    setFormData({ name: category.name });
-    setEditingId(category.id_category);
+    setFormData({ description: category.description });
+    setEditingId(category.id);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar esta categoria de riesgo?");
     if (!confirmDelete) return;
     try {
       await api.delete(`/risk-categories/${id}`);
-      setCategory(categories.filter((cat) => cat.id_category !== id));
+      setCategories(categories.filter((cat) => cat.id !== id));
+      if (editingId === id) resetForm();      
       toast({
         title: "Categoría eliminada",
         description: "La categoría ha sido eliminada exitosamente.",
       });
-      if (editingId === id) resetForm();
-    } catch {
+
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error al eliminar",
@@ -146,22 +161,32 @@ export default function RiskCategories() {
               <Input
                 required
                 placeholder="Ingrese el nombre de la categoría"
-                value={formData.name}
+                value={formData.description}
                 onChange={(e) => {
-                  setFormData({ name: e.target.value });
-                  setErrors({ name: false });
+                  setFormData({ description: e.target.value });
+                  setErrors({ description: false });
                 }}
                 className={`border-violet-200 focus:ring-violet-500 ${
-                  errors.name ? "border-red-500" : ""
+                  errors.description ? "border-red-500" : ""
                 }`}
               />
-              {errors.name && (
+              {errors.description && (
                 <p className="text-sm text-red-500">Este campo es obligatorio</p>
               )}
             </div>
             <div className="flex gap-4">
               <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
-                {editingId ? "Actualizar Categoría" : "Registrar Categoría"}
+                {editingId ? (
+                  <>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Actualizar Categoria
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Registrar Categoria
+                </>
+                )}
               </Button>
               {editingId && (
                 <Button
@@ -178,42 +203,51 @@ export default function RiskCategories() {
         </Card>
 
         <Card className="p-6 shadow-lg border-t-4 border-orange-500">
-          <h2 className="text-2xl font-semibold text-orange-900">Listado de Categorías</h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="bg-violet-50">Nombre</TableHead>
-                <TableHead className="bg-violet-50">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.map((category) => (
-                <TableRow key={category.id_category} className="hover:bg-violet-50">
-                  <TableCell>{category.name}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-violet-600 border-violet-600"
-                        onClick={() => handleEdit(category)}
-                      >
-                        <Edit3 className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-orange-600 border-orange-600"
-                        onClick={() => handleDelete(category.id_category)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <h2 className="text-2xl font-semibold text-orange-900">
+            <Users className="h-6 w-6" />
+            Listado de Categorías</h2>
+            <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="bg-violet-50">Nombre</TableHead>
+                  <TableHead className="bg-violet-50">Acciones</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {categories.map((category) => (
+                  <TableRow 
+                    key={category.id}
+                    className={`border-b hover:bg-violet-50/50 transition-colors duration-200 ${
+                      editingId === category.id ? "bg-violet-50" : ""
+                    }`}
+                  >
+                    <TableCell>{category.description}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-violet-600 border-violet-600"
+                          onClick={() => handleEdit(category)}
+                        >
+                          <Edit3 className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-orange-600 border-orange-600"
+                          onClick={() => handleDelete(category.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </Card>
       </div>
     </div>

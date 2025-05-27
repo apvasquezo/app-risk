@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/toaster";
 import {
   AlertCircle,
   FileText,
@@ -86,7 +87,9 @@ export default function SuperLayout({ children }: { children: React.ReactNode })
 
         {/* Main Content */}
         <main className="pt-16 pl-64">
-          <div className="p-6">{children}</div>
+          <div className="p-6">{children}
+          <Toaster />
+          </div>
         </main>
       </div>
     </AuthMiddleware>
