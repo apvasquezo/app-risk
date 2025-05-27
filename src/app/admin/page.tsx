@@ -8,6 +8,7 @@ import AreaChart from "@/components/charts/area-chart"
 import RadarChart from "@/components/charts/radar-chart"
 import HeatmapChart from "@/components/charts/heatmap-chart"
 
+
 export default function Dashboard() {
   return (
     <div className="container mx-8 py-3">

@@ -1,39 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 import Image from "next/image";
-import { useState } from "react"
-import { FaUserCircle } from "react-icons/fa"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { useState } from "react";
+import { FaUserCircle } from "react-icons/fa";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function ProfileForm() {
+  const router = useRouter();
+  const { user } = useAuth();
+
   const [formData, setFormData] = useState({
     username: "",
-    role: "usuario", // Rol por defecto
+    role: "usuario",
     avatar: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
-  })
+  });
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const reader = new FileReader()
+      const file = e.target.files[0];
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, avatar: reader.result as string })
-      }
-      reader.readAsDataURL(file)
+        setFormData({ ...formData, avatar: reader.result as string });
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Aquí agregarías la lógica para guardar los datos del perfil
-    console.log("Perfil actualizado:", formData)
-  }
+    e.preventDefault();
+    console.log("Perfil actualizado:", formData);
+  };
 
   return (
     <div className="min-h-screen p-8">
@@ -87,7 +91,11 @@ export default function ProfileForm() {
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">Rol</label>
-                <Input disabled value={formData.role} className="border-violet-200 focus:ring-violet-500 bg-gray-100" />
+                <Input
+                  disabled
+                  value={formData.role}
+                  className="border-violet-200 focus:ring-violet-500 bg-gray-100"
+                />
               </div>
             </div>
 
@@ -127,12 +135,29 @@ export default function ProfileForm() {
               </div>
             </div>
 
-            <Button type="submit" className="bg-orange-500 text-white hover:bg-violet-900">
-              Actualizar Perfil
-            </Button>
+            {/* Botones */}
+            <div className="flex justify-end gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="text-violet-600 border-violet-600 hover:bg-violet-900 hover:text-white"
+                onClick={() => {
+                  if (user?.role === "super") {
+                    router.push("/super");
+                  } else {
+                    router.push("/admin");
+                  }
+                }}
+              >
+                Volver
+              </Button>
+              <Button type="submit" className="bg-orange-500 text-white hover:bg-violet-900">
+                Actualizar Perfil
+              </Button>
+            </div>
           </form>
         </Card>
       </div>
     </div>
-  )
+  );
 }

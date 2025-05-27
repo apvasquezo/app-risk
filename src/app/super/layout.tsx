@@ -18,7 +18,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import UserMenu from "@/components/views/usermenu";
-import AuthMiddleware from "@/components/middleware/authMiddleware"; // 👈 Protección agregada
+import AuthMiddleware from "@/components/middleware/authMiddleware"; 
 
 const sidebarItems = [
   { title: "Usuarios", icon: User, href: "/super/users" },
