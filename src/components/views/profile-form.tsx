@@ -2,26 +2,50 @@
 
 import type React from "react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import api from "@/lib/axios";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfileForm() {
   const router = useRouter();
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const [formData, setFormData] = useState({
     username: "",
     role: "usuario",
     avatar: "",
-    currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      try {
+        const res = await api.get("/api/profile/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setFormData({
+          username: res.data.username,
+          role: res.data.role || "usuario",
+          avatar: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } catch (err) {
+        console.error("Error al cargar perfil", err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -34,9 +58,46 @@ export default function ProfileForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Perfil actualizado:", formData);
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Las contraseñas no coinciden",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      await api.put(
+        "/api/profile/me",
+        {
+          username: formData.username,
+          new_password: formData.newPassword || undefined,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      toast({
+        title: "Perfil actualizado",
+        description: "Inicia sesión nuevamente con tus nuevos datos.",
+      });
+      router.push("/login");
+    } catch (error) {
+      console.error("Error al actualizar perfil", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el perfil",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -103,16 +164,6 @@ export default function ProfileForm() {
             <div className="space-y-6">
               <h2 className="text-2xl font-semibold text-violet-800">Cambio de Contraseña</h2>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-violet-700">Contraseña actual</label>
-                <Input
-                  type="password"
-                  required
-                  value={formData.currentPassword}
-                  onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
-                  className="border-violet-200 focus:ring-violet-500"
-                />
-              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">Nueva contraseña</label>
                 <Input

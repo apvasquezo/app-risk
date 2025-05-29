@@ -21,8 +21,8 @@ export default function RecuperarContrasena() {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3000/recoverpassword", {
-        method: "POST",
+      const response = await fetch("http://localhost:8000/recoverpassword", {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
