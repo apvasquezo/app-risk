@@ -122,6 +122,8 @@ export default function ProfileForm() {
                   <FaUserCircle className="w-full h-full text-violet-200 rounded-full border-4 border-violet-300 shadow-lg" />
                 )}
               </div>
+              <span className="text-sm font-medium text-gray-700">
+              </span>
               <Button variant="outline" className="text-violet-600 border-violet-600">
                 <label htmlFor="avatar-upload" className="cursor-pointer">
                   Cambiar Avatar

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const role = typeof window !== "undefined" ? localStorage.getItem("role") || "usuario" : "usuario";
   const router = useRouter(); 
 
   const handleToggle = () => setOpen(!open);
@@ -30,10 +31,13 @@ export default function UserMenu() {
   };
 
   return (
-    <div className="relative inline-block text-left">
-      <div onClick={handleToggle} className="cursor-pointer text-yellow-500 text-3xl">
-        <FaUserCircle />
-      </div>
+      <div className="flex flex-col items-center">
+          <div onClick={handleToggle} className="cursor-pointer text-yellow-500 text-5xl">
+              <FaUserCircle />
+            </div>
+              <span className="text-xs text-violet-700 mt-1 font-bold tracking-wide">
+                {role.charAt(0).toUpperCase() + role.slice(1).toLowerCase()}
+              </span>
 
       {open && (
         <div className="absolute right-0 mt-2 w-40 bg-orange-100 border border-orange-300 rounded-md shadow-md z-50 backdrop-blur-sm">
