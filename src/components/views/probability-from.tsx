@@ -146,9 +146,6 @@ export default function ProbabilityImpactForm() {
       const endpoint = type === "prob" ? "/probabilities" : "/impacts"
       const itemName = type === "prob" ? "Probabilidad" : "Impacto"
 
-      console.log("Payload enviado:", payload)
-      console.log("Endpoint:", endpoint)
-
       if (editingLevel != null) {
         // Actualizar elemento existente usando el level como identificador
         await api.put(`${endpoint}/${editingLevel}`, payload)
