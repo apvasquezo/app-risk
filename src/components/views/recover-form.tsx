@@ -15,10 +15,19 @@ export default function RecuperarContrasena() {
     email: "",
   });
   const [isSent, setIsSent] = useState(false);
+  const [loading, setLoading] = useState(false);  
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+  
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Por favor ingresa un correo válido.");
+      return;
+    }
+
+    setLoading(true);  
 
     try {
       const response = await fetch("http://localhost:8000/recoverpassword", {
@@ -33,6 +42,9 @@ export default function RecuperarContrasena() {
       toast.success("Se han enviado las instrucciones a tu correo.");
     } catch (error) {
       toast.error("Usuario o correo incorrecto.");
+      console.error("Error en la recuperación de contraseña:", error);
+    } finally {
+      setLoading(false);  
     }
   };
 
@@ -60,7 +72,7 @@ export default function RecuperarContrasena() {
             </p>
             <Button
               onClick={() => router.push("/login")}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white mt-4"
+              className="w-full bg-orange-500 hover:bg-violet-900 text-white mt-4"
             >
               Volver al inicio de sesión
             </Button>
@@ -124,8 +136,12 @@ export default function RecuperarContrasena() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600 text-white">
-              Enviar instrucciones
+            <Button
+              type="submit"
+              className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+              disabled={loading} 
+            >
+              {loading ? "Cargando..." : "Enviar instrucciones"}
             </Button>
           </form>
 
