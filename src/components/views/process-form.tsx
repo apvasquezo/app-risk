@@ -1,10 +1,14 @@
 "use client";
 
+import type React from "react"
+
 import { useEffect, useState } from "react";
 import { Edit3, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { transformProces } from "@/lib/transformers";
+import { transformMacro } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -25,70 +29,75 @@ import api from "@/lib/axios";
 
 interface Process {
   id: string;
-  subprocess: string;
+  macroprocess_id: string;
+  macro:string // nombre macroproceso
   description: string;
+  personal_id: string
 };
+interface Macro {
+  id_macro: number
+  description: string
+}
 
 export default function ProcessManagement() {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({ subprocess: "", description: "" });
+  const [formData, setFormData] = useState({ macro: "", description: "", personal_id:"" });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [errors, setErrors] = useState({ subprocess: false, description: false });
-  const [macroprocesses, setMacroprocesses] = useState<string[]>([]);
+  const [errors, setErrors] = useState({ macro: false, description: false , personal_id:false});
+  const [process, setProcess] = useState<Process[]>([]);
+  const [macro , setMacro] = useState<Macro[]>([]);
+
+  const MapMacroIdtoName = (macroId:number, macroList: Macro[]):string =>{
+    const macro = macroList.find((mac) => mac.id_macro=== macroId)
+    return macro ? macro.description : "Macroproceso no encontrado"
+  }
 
   useEffect(() => {
-        const fetchMacroprocesses= async () => {
+        const fetchProcess= async () => {
           try {
-            const response = await api.get("/macroprocesses" );
-            setMacroprocesses(response.data);
+
+            const responseMacro = await api.get("/macroprocesses" );
+            const transformedMacro = transformMacro(responseMacro.data)
+            setMacro(transformedMacro);
+
+            const responseProces= await api.get("/processes")
+            const transformedProces = transformProces(responseProces.data)
+            const ProcesWithMacroames = transformedProces.map((process) => ({
+              ...process,
+              proces: MapMacroIdtoName(parseInt(process.macroprocess_id), transformedMacro),
+            }))           
+           
+            setProcess(ProcesWithMacroames)
+
           } catch (error) {
             console.error(error);
             toast({
               variant: "destructive",
-              title: "Error al cargar canales",
-              description: "No se pudo obtener el listado de canales desde el servidor.",
+              title: "Error al cargar procesos",
+              description: "No se pudo obtener el listado de procesos desde el servidor.",
             });
           }
         };
-        fetchMacroprocesses();
+        fetchProcess();
       }, [toast]);
-
-
-  const [processes, setProcesses] = useState<Process[]>([]);
-   
-  useEffect(() => {
-  const fetchProcesses = async () => {
-    try {
-      const response = await api.get("/processes"); 
-      setProcesses(response.data);
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error al cargar procesos",
-        description: "No se pudieron obtener los procesos desde la base de datos.",
-      });
-    }
-  };
-
-  fetchProcesses();
-}, []);
 
   const validateForm = () => {
     const newErrors = {
-      subprocess: !formData.subprocess.trim(),
+      macro: !formData.macro,
       description: !formData.description.trim(),
-    };
+      personal_id: !formData.personal_id.trim(),
+    }
     setErrors(newErrors);
-    return !newErrors.subprocess && !newErrors.description;
+    return !newErrors.macro && !newErrors.description && !newErrors.personal_id;
   };
 
   const resetForm = () => {
-    setFormData({ subprocess: "", description: "" });
+    setFormData({ macro: "", description: "", personal_id:"" });
     setEditingId(null);
-    setErrors({ subprocess: false, description: false });
+    setErrors({ macro: false, description: false, personal_id:  false });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       toast({
@@ -100,10 +109,22 @@ export default function ProcessManagement() {
     }
 
     try {
+      const payload ={
+        macroprocess_id: Number.parseInt(formData.macro),
+        description: formData.description,
+        personal_id: formData.personal_id,       
+      }
       if (editingId) {
-        setProcesses(
-          processes.map((process) =>
-            process.id === editingId ? { ...formData, id: editingId } : process
+        await api.put(`/processes/${editingId}`, payload)
+        setProcess(
+          process.map((process) =>
+            process.id === editingId 
+          ? { ...process,
+              macroprocess_id:formData.macro,
+              macro: MapMacroIdtoName(parseInt(formData.macro), macro),
+              description: formData.description,
+              personal_id:formData.personal_id,
+          } : process
           )
         );
         toast({
@@ -111,15 +132,23 @@ export default function ProcessManagement() {
           description: "El proceso ha sido actualizado exitosamente.",
         });
       } else {
-        const newProcess = { ...formData, id: Date.now().toString() };
-        setProcesses([...processes, newProcess]);
+        const response = await api.post("/processes", payload)
+        const newProcess = { 
+          id: response.data.id_process,
+          macroprocess_id: response.data.macroprocess_id,
+          macro:MapMacroIdtoName(parseInt(formData.macro), macro),
+          description: response.data.description,
+          personal_id: response.data.personal_id,         
+         };
+        setProcess([...process, newProcess]);
         toast({
           title: "Proceso registrado",
           description: "El nuevo proceso ha sido registrado exitosamente.",
         });
       }
       resetForm();
-    } catch {
+    } catch (error){
+      console.error(error)
       toast({
         variant: "destructive",
         title: "Error",
@@ -129,17 +158,33 @@ export default function ProcessManagement() {
   };
 
   const handleEdit = (process: Process) => {
-    setFormData(process);
+    setFormData({
+      macro:process.macroprocess_id,
+      description: process.description,
+      personal_id:process.personal_id,
+    });
     setEditingId(process.id);
   };
 
-  const handleDelete = (id: string) => {
-    setProcesses(processes.filter((p) => p.id !== id));
-    toast({
-      title: "Proceso eliminado",
-      description: "El proceso ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este tipo de riesgo?")
+    if (!confirmDelete) return 
+    try {
+      await api.delete(`/risk-types/${id}`)   
+      setProcess(process.filter((process) => process.id !== id));
+
+      toast({
+        title: "Proceso eliminado",
+        description: "El proceso ha sido eliminado exitosamente.",
+      });
+      if (editingId === id) resetForm();
+    } catch (error){
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "No se pudo eliminar el proceso.",
+      })     
+    }
   };
 
   return (
@@ -156,17 +201,17 @@ export default function ProcessManagement() {
                 Macroprocesos <span className="text-red-500">*</span>
               </label>
               <Select
-                value={formData.subprocess}
+                value={formData.macro}
                 onValueChange={(value) => {
-                  setFormData({ ...formData, subprocess: value });
-                  setErrors({ ...errors, subprocess: false });
+                  setFormData({ ...formData, macro: value });
+                  setErrors({ ...errors, macro: false });
                 }}
               >
                 <SelectTrigger
                   className={`w-full rounded-md p-2 bg-white text-black ${
-                    errors.subprocess
+                    errors.macro
                       ? "border-red-500"
-                      : formData.subprocess
+                      : formData.macro
                       ? "border-violet-500"
                       : "border-violet-200"
                   }`}
@@ -174,18 +219,18 @@ export default function ProcessManagement() {
                   <SelectValue placeholder="Seleccione un microproceso" />
                 </SelectTrigger>
                 <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md text-black">
-                  {macroprocesses.map((item) => (
+                  {macro.map((item) => (
                     <SelectItem
-                      key={item}
-                      value={item}
+                      key={item.id_macro}
+                      value={item.id_macro.toString()}
                       className="hover:bg-violet-100 focus:bg-violet-200"
                     >
-                      {item}
+                      {item.description}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.subprocess && (
+              {errors.macro && (
                 <p className="text-sm text-red-500">Este campo es obligatorio</p>
               )}
             </div>
@@ -239,9 +284,9 @@ export default function ProcessManagement() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {processes.map((process) => (
+              {process.map((process) => (
                 <TableRow key={process.id} className="hover:bg-violet-50">
-                  <TableCell>{process.subprocess}</TableCell>
+                  <TableCell>{process.macro}</TableCell>
                   <TableCell>{process.description}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">

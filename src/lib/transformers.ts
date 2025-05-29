@@ -4,24 +4,6 @@ export interface Channel {
   description: string;
 }
 
-export interface Cause {
-  id_cause: number;
-  description: string;
-}
-
-export interface Consequence {
-  id_consequence: number;
-  description: string;
-}
-
-export interface Control {
-  id_control: number;
-  tipo_control: string;
-  descripcion: string;
-  frecuencia: string;
-  responsable: string;
-}
-
 export interface Employee {
   id_employee: number;
   cedula: string;
@@ -77,6 +59,17 @@ export const transformChannels = (data: Channel[]) => {
   }));
 };
 
+export interface Cause {
+  id_cause: number;
+  description: string;
+}
+
+export interface Consequence {
+  id_consequence: number;
+  description: string;
+}
+
+
 export const transformCauses = (data: Cause[]) => {
   return data.map((cause) => ({
     id: cause.id_cause,
@@ -91,16 +84,6 @@ export const transformConsequences = (data: Consequence[]) => {
   }));
 };
 
-export const transformControls = (data: Control[]) => {
-  return data.map((ctrl) => ({
-    id: ctrl.id_control,
-    tipoControl: ctrl.tipo_control,
-    descripcion: ctrl.descripcion,
-    frecuencia: ctrl.frecuencia,
-    responsable: ctrl.responsable,
-  }));
-};
-
 export const transformEmployees = (data: RawEmployee[]) => {
   return data.map((emp) => ({
     cedula: emp.id_personal,
@@ -109,6 +92,24 @@ export const transformEmployees = (data: RawEmployee[]) => {
     area: emp.area,
     correo: emp.email,
     notifica:emp.notify
+  }));
+};
+export interface Control {
+  id_control: number;
+  control_type_id: number  
+  description: string
+  frequency: string
+  responsible_id: string
+}
+
+export const transformControls = (data: Control[]) => {
+  return data.map((ctrl) => ({
+    id: ctrl.id_control.toString(),
+    tipoControl: ctrl.control_type_id.toString(),
+    descripcion: ctrl.description,
+    control:"",
+    frecuencia: ctrl.frequency,
+    responsable: ctrl.responsible_id,
   }));
 };
 
@@ -202,5 +203,33 @@ export const transformImpact = (data: Impact[]) => {
     description: impact.description,
     definition: impact.definition,
     criteria_smlv: impact.criteria_smlv,
+  }))
+}
+
+export interface RawProces {
+  id_process: number
+  macroprocess_id: number
+  description: string
+  personal_id: string
+}
+export const transformProces = (data : RawProces[]) => {
+  return data.map((proces) => ({
+    id: proces.id_process.toString(),
+    macroprocess_id: proces.macroprocess_id.toString(),
+    macro:"",
+    description: proces.description,
+    personal_id:proces.personal_id,
+  }))
+}
+
+export interface Macro {
+  id_macro: number,
+  description:string
+}
+
+export const transformMacro= (data: Macro[]) => {
+  return data.map((macro) => ({
+    id_macro: macro.id_macro, 
+    description: macro.description,
   }))
 }

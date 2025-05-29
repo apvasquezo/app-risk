@@ -1,73 +1,97 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { transformControls } from "@/lib/transformers"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { transformTypeControl } from "@/lib/transformers"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import api from "@/lib/axios";
+import api from "@/lib/axios"
+
 interface Control {
   id: string
-  tipoControl: string
+  tipoControl: string //id del tipo de control
+  control: string //nombre tipo de control
   descripcion: string
   frecuencia: string
   responsable: string
 }
-const tipoControlOptions = ["Preventivo", "Detectivo", "Correctivo"];
-const frecuenciaOptions = ["Diario", "Semanal", "Mensual", "Trimestral", "Anual"];
 
-export default function ControlManagementForm() {
+interface TypeControl {
+  id: number
+  description: string
+}
+
+// Opciones de frecuencia definidas
+const frecuenciaOptions = ["Diaria", "Semanal", "Quincenal", "Mensual", "Bimestral", "Trimestral", "Semestral", "Anual"]
+
+export default function Controls() {
   const { toast } = useToast()
-
-  const [formData, setFormData] = useState<Control>({
-    id: "",
-    tipoControl: "",
+  const [formData, setFormData] = useState({
+    control: "",
     descripcion: "",
     frecuencia: "",
     responsable: "",
   })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [errors, setErrors] = useState({
-    tipoControl: false,
+    control: false,
     descripcion: false,
     frecuencia: false,
     responsable: false,
   })
   const [controlList, setControlList] = useState<Control[]>([])
+  const [typeList, setTypeList] = useState<TypeControl[]>([])
+
+  const mapTypeIdToName = (typeId: number, typeList: TypeControl[]): string => {
+    const type = typeList.find((type) => type.id === typeId)
+    return type ? type.description : "Tipo de control no encontrado"
+  }
+
+  const mapTypeNameToId = (typeName: string, typeList: TypeControl[]): number => {
+    const type = typeList.find((type) => type.description === typeName)
+    return type ? type.id : 0
+  }
 
   useEffect(() => {
     const fetchControls = async () => {
+      
       try {
-        const response = await api.get("/controls" );
-        setControlList(transformControls(response.data));
+        
+        const responseTypes = await api.get("/risk-control-types")
+        console.log("que llega en tipo control ", responseTypes)
+        const transformedTypes = transformTypeControl(responseTypes.data)
+        console.log("que transdorma tipo ", transformedTypes)
+        setTypeList(transformedTypes)
+
+        const responseControl = await api.get("/controls")
+        const transformedControl = transformControls(responseControl.data)
+
+        const controlWithTypeNames = transformedControl.map((control) => ({
+          ...control,
+          control: mapTypeIdToName(Number(control.tipoControl), transformedTypes),
+        }))
+        setControlList(controlWithTypeNames)
       } catch (error) {
-        console.error(error);
+        console.error(error)
         toast({
           variant: "destructive",
-          title: "Error al cargar controles",
-          description: "No se pudo obtener el listado de controles desde el servidor.",
-        });
+          title: "Error al cargar tipos de controles",
+          description: "No se pudo obtener el listado de tipos de controles desde el servidor.",
+        })
       }
-    };
-    fetchControls();
-  }, [toast]);
+    }
+    fetchControls()
+  }, [toast])
 
   const validateForm = () => {
     const newErrors = {
-      tipoControl: !formData.tipoControl.trim(),
+      control: !formData.control.trim(),
       descripcion: !formData.descripcion.trim(),
       frecuencia: !formData.frecuencia.trim(),
       responsable: !formData.responsable.trim(),
@@ -78,15 +102,14 @@ export default function ControlManagementForm() {
 
   const resetForm = () => {
     setFormData({
-      id: "",
-      tipoControl: "",
+      control: "",
       descripcion: "",
       frecuencia: "",
       responsable: "",
     })
     setEditingId(null)
     setErrors({
-      tipoControl: false,
+      control: false,
       descripcion: false,
       frecuencia: false,
       responsable: false,
@@ -94,97 +117,113 @@ export default function ControlManagementForm() {
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-  
+    e.preventDefault()
     if (!validateForm()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
         description: "Todos los campos son obligatorios.",
-      });
-      return;
+      })
+      return
     }
-  
+
     try {
+      // Convertir el nombre del tipo de control a ID
+      const controlTypeId = mapTypeNameToId(formData.control, typeList)
+
+      const payload = {
+        control_type_id: controlTypeId.toString(),
+        description: formData.descripcion,
+        frequency: formData.frecuencia,
+        responsible_id: formData.responsable,
+      }
+
       if (editingId) {
-        await api.put(`/controls/${editingId}`, {
-          tipo_control: formData.tipoControl,
-          descripcion: formData.descripcion,
-          frecuencia: formData.frecuencia,
-          responsable: formData.responsable,
-        });
-  
-        setControlList(prev =>
-          prev.map(control =>
-            control.id === editingId ? { ...formData, id: editingId } : control
-          )
-        );
-  
+        await api.put(`/controls/${editingId}`, payload)
+
+        setControlList((prev) =>
+          prev.map((control) =>
+            control.id === editingId
+              ? {
+                  ...control,
+                  descripcion: formData.descripcion,
+                  frecuencia: formData.frecuencia,
+                  responsable: formData.responsable,
+                  tipoControl: controlTypeId.toString(),
+                  control: formData.control, // nombre del tipo de control
+                }
+              : control,
+          ),
+        )
+
         toast({
           title: "Control actualizado",
           description: "El control ha sido actualizado exitosamente.",
-        });
+        })
       } else {
-        const res = await api.post("/controls", {
-          tipo_control: formData.tipoControl,
-          descripcion: formData.descripcion,
-          frecuencia: formData.frecuencia,
-          responsable: formData.responsable,
-        });
-  
+        const res = await api.post("/controls", payload)
+
         const newControl = {
-          id: res.data.id_control,
-          tipoControl: res.data.tipo_control,
-          descripcion: res.data.descripcion,
-          frecuencia: res.data.frecuencia,
-          responsable: res.data.responsable,
-        };
-  
-        setControlList(prev => [...prev, newControl]);
-  
+          id: res.data.id_control.toString(),
+          tipoControl: controlTypeId.toString(),
+          descripcion: payload.description,
+          frecuencia: payload.frequency,
+          responsable: payload.responsible_id,
+          control: formData.control, // nombre del tipo de control
+        }
+
+        setControlList((prev) => [...prev, newControl])
+
         toast({
           title: "Control registrado",
           description: "El nuevo control ha sido registrado exitosamente.",
-        });
+        })
       }
-  
-      resetForm();
+
+      resetForm()
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al procesar la solicitud.",
-      });
-    }  
+      })
+    }
   }
 
   const handleEdit = (control: Control) => {
-    setFormData(control)
+    setFormData({
+      control: control.control, // usar el nombre del tipo, no el ID
+      descripcion: control.descripcion,
+      frecuencia: control.frecuencia,
+      responsable: control.responsable,
+    })
     setEditingId(control.id)
   }
 
   const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este control?")
+    if (!confirmDelete) return
     try {
-      await api.delete(`/controls/${id}`);
-  
-      setControlList(prev => prev.filter(control => control.id !== id));
-  
+      await api.delete(`/controls/${id}`)
+
+      setControlList((prev) => prev.filter((control) => control.id !== id))
+
       toast({
         title: "Control eliminado",
         description: "El control ha sido eliminado exitosamente.",
-      });
-  
-      if (editingId === id) resetForm();
+      })
+
+      if (editingId === id) resetForm()
     } catch (error) {
-      console.error(error);
+      console.error(error)
       toast({
         variant: "destructive",
         title: "Error al eliminar",
         description: "No se pudo eliminar el control.",
-      });
+      })
     }
-  };
+  }
 
   return (
     <div className="min-h-screen p-8">
@@ -200,26 +239,26 @@ export default function ControlManagementForm() {
                 Tipo de Control <span className="text-red-500">*</span>
               </label>
               <Select
-                value={formData.tipoControl}
+                value={formData.control}
                 onValueChange={(value) => {
-                  setFormData({ ...formData, tipoControl: value })
-                  setErrors({ ...errors, tipoControl: false })
+                  setFormData({ ...formData, control: value })
+                  setErrors({ ...errors, control: false })
                 }}
               >
                 <SelectTrigger
-                  className={`border-violet-200 focus:ring-violet-500 ${errors.tipoControl ? "border-red-500" : ""}`}
+                  className={`border-violet-200 focus:ring-violet-500 ${errors.control ? "border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Seleccione un tipo de control" />
                 </SelectTrigger>
                 <SelectContent>
-                  {tipoControlOptions.map((tipo) => (
-                    <SelectItem key={tipo} value={tipo}>
-                      {tipo}
+                  {typeList.map((tipo) => (
+                    <SelectItem key={tipo.id} value={tipo.description}>
+                      {tipo.description}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.tipoControl && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+              {errors.control && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
             </div>
 
             <div className="space-y-2">
@@ -316,7 +355,7 @@ export default function ControlManagementForm() {
             <TableBody>
               {controlList.map((control) => (
                 <TableRow key={control.id} className="hover:bg-violet-50">
-                  <TableCell>{control.tipoControl}</TableCell>
+                  <TableCell>{control.control}</TableCell>
                   <TableCell>{control.descripcion}</TableCell>
                   <TableCell>{control.frecuencia}</TableCell>
                   <TableCell>{control.responsable}</TableCell>

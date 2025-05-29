@@ -1,12 +1,11 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from "react"
-import { Edit3, Trash2 } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { transformCauses } from "@/lib/transformers"
-import { transformConsequences } from "@/lib/transformers"
+import React, { useState, useEffect } from "react";
+import { Edit3, Trash2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { transformCauses, transformConsequences } from "@/lib/transformers";
 import {
   Table,
   TableBody,
@@ -15,153 +14,164 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast";
 import api from "@/lib/axios";
 
 interface Cause {
-  id: number
-  description: string
+  id: number;
+  description: string;
 }
 
 interface Consequence {
-  id: number
-  description: string
+  id: number;
+  description: string;
 }
 
 export default function CausesConsequencesForm() {
-  const { toast } = useToast()
-  const [causeForm, setCauseForm] = useState({ description: "" })
-  const [consequenceForm, setConsequenceForm] = useState({ description: "" })
-  const [editingCauseId, setEditingCauseId] = useState<number | null>(null)
-  const [editingConsequenceId, setEditingConsequenceId] = useState<number | null>(null)
-  const [causeList, setCauseList] = useState<Cause[]>([])
-  const [consequenceList, setConsequenceList] = useState<Consequence[]>([])
+  const { toast } = useToast();
+  const [causeForm, setCauseForm] = useState({ description: "" });
+  const [consequenceForm, setConsequenceForm] = useState({ description: "" });
+  const [editingCauseId, setEditingCauseId] = useState<number | null>(null);
+  const [editingConsequenceId, setEditingConsequenceId] = useState<number | null>(null);
+  const [causeList, setCauseList] = useState<Cause[]>([]);
+  const [consequenceList, setConsequenceList] = useState<Consequence[]>([]);
+
+  const [causeErrors, setCauseErrors] = useState({description: false})
+  const [conseErrors, setconseErrors] = useState({description: false})
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [causeRes, consequenceRes] = await Promise.all([
-          api.get("/causes"),
-          api.get("/consequences")
-        ])
-        setCauseList(transformCauses(causeRes.data));
-        setConsequenceList(transformConsequences(consequenceRes.data));
+        //carga causas
+        const responseCause = await api.get("/causes");
+        console.log("Causas ", responseCause)
+        setCauseList(transformCauses(responseCause.data));
+        const responseConse = await api.get("/consequences"); 
+        setConsequenceList(transformConsequences(responseConse.data));
       } catch (error) {
-        console.log(error)
+        console.error(error);
         toast({
           variant: "destructive",
           title: "Error al cargar datos",
-          description: "No se pudieron obtener las causas o consecuencias."
-        })
+          description: "No se pudieron obtener las causas o consecuencias.",
+        });
       }
+    };
+    fetchData();
+  }, [toast]);
+
+  const validateForm = (form: typeof causeForm, type: "cause" | "consequence") => {
+    const newErrors = {
+      description: !form.description.trim(),
     }
-    fetchData()
-  }, [toast])
+    if (type === "cause") {
+      setCauseErrors(newErrors)
+    } else {
+      setconseErrors(newErrors)
+    }
 
-  const handleSubmit = async (
-    e: React.FormEvent,
-    type: "cause" | "consequence"
-  ) => {
-    e.preventDefault()
-    const form = type === "cause" ? causeForm : consequenceForm
-    const editingId = type === "cause" ? editingCauseId : editingConsequenceId
+    return !newErrors.description
+  }
 
-    if (!form.description.trim()) {
-      toast({
-        variant: "destructive",
-        title: "Error de validación",
-        description: "La descripción es obligatoria."
-      })
+  const resetForm = (type: "cause" | "consequense") => {
+    if (type === "cause") {
+      setCauseForm({ description: ""})
+      setEditingCauseId(null)
+      setCauseErrors({ description: false })
+    } else {
+      setConsequenceForm({ description: "" })
+      setEditingConsequenceId(null)
+      setconseErrors({ description: false })
+    }
+  }
+
+
+  const handleSubmit = async (e: React.FormEvent, type: "cause" | "consequence") => {
+    e.preventDefault();
+    const form = type === "cause" ? causeForm : consequenceForm;
+    const editingId = type === "cause" ? editingCauseId : editingConsequenceId;
+
+    if (!validateForm(form, type)) {
       return
     }
 
     try {
-      if (editingId !== null) {
-        await api.put(
-          `/${type === "cause" ? "causes" : "consequences"}/${editingId}`,
-          { description: form.description },
-        )
-        if (type === "cause") {
-          setCauseList(prev =>
-            prev.map(item =>
-              item.id === editingId ? { ...item, description: form.description } : item
-            )
-          )
-          setEditingCauseId(null)
-        } else {
-          setConsequenceList(prev =>
-            prev.map(item =>
-              item.id === editingId ? { ...item, description: form.description } : item
-            )
-          )
-          setEditingConsequenceId(null)
-        }
-        toast({
-          title: "Actualización exitosa",
-          description: `${type === "cause" ? "Causa" : "Consecuencia"} actualizada correctamente.`
-        })
-      } else {
-        const res = await api.post(
-          `/${type === "cause" ? "causes" : "consequences"}`,
-          { description: form.description },
-        )
-        const newItem = {
-          id: res.data.id_cause || res.data.id_consequence,
-          description: res.data.description
-        }
-        if (type === "cause") setCauseList(prev => [...prev, newItem])
-        else setConsequenceList(prev => [...prev, newItem])
-        toast({
-          title: "Registro exitoso",
-          description: `${type === "cause" ? "Causa" : "Consecuencia"} registrada.`
-        })
+      const payload =
+      type==="cause" 
+      ?{
+        description:form.description,
       }
-      if (type === "cause") setCauseForm({ description: "" })
-      else setConsequenceForm({ description: "" })
-    } catch  (error) {
-      console.log(error)
+      :{
+        description:form.description,
+      }
+      const endpoint = type === "cause" ? "/causes" : "/consequences"
+      const itemName = type === "cause" ? "Causas" : "Consecuencias"
+
+
+      if (editingId !== null) {
+        console.log (" a donde va ", endpoint)
+        console.log (" cual es cual ", editingId)
+        await api.put(`/${type}s/${editingId}`, payload);
+              
+        const updatedList = (type === "cause" ? causeList : consequenceList).map((item) =>
+          item.id === editingId ? { ...item, description: form.description } : item
+        );
+        type === "cause" ? setCauseList(updatedList) : setConsequenceList(updatedList);
+        type === "cause" ? setEditingCauseId(null) : setEditingConsequenceId(null);
+        toast({ 
+          title: "Actualización exitosa", 
+          description: `${type} actualizado correctamente.` });
+      } else {
+        console.log("payload ", payload)
+        const res = await api.post(`/${type}s`, payload);
+        console.log ("lo que envia ", res.data)
+        const newItem = {
+          id: type === "cause" ? res.data.id_cause : res.data.id_consequence,
+          description: res.data.description
+        };
+        type === "cause"
+          ? setCauseList((prev) => [...prev, newItem])
+          : setConsequenceList((prev) => [...prev, newItem]);
+        toast({ title: "Registro exitoso", description: `${type} registrado correctamente.` });
+      }
+      type === "cause" ? setCauseForm({ description: "" }) : setConsequenceForm({ description: "" });
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error al guardar",
-        description: "No se pudo procesar la solicitud."
-      })
+        description: "No se pudo procesar la solicitud.",
+      });
     }
-  }
+  };
 
   const handleEdit = (item: Cause | Consequence, type: "cause" | "consequence") => {
     if (type === "cause") {
-      setCauseForm({ description: item.description })
-      setEditingCauseId(item.id)
+      setCauseForm({ description: item.description });
+      setEditingCauseId(item.id);
     } else {
-      setConsequenceForm({ description: item.description })
-      setEditingConsequenceId(item.id)
+      setConsequenceForm({ description: item.description });
+      setEditingConsequenceId(item.id);
     }
-  }
+  };
 
   const handleDelete = async (id: number, type: "cause" | "consequence") => {
     try {
-      await api.delete(
-        `/${type === "cause" ? "causes" : "consequences"}/${id}`,
-      )
-      if (type === "cause") {
-        setCauseList(prev => prev.filter(item => item.id !== id))
-        if (editingCauseId === id) setEditingCauseId(null)
-      } else {
-        setConsequenceList(prev => prev.filter(item => item.id !== id))
-        if (editingConsequenceId === id) setEditingConsequenceId(null)
-      }
-      toast({
-        title: "Eliminación exitosa",
-        description: `${type === "cause" ? "Causa" : "Consecuencia"} eliminada correctamente.`
-      })
-    } catch {
+      await api.delete(`/${type}s/${id}`);
+      const updatedList = (type === "cause" ? causeList : consequenceList).filter(
+        (item) => item.id !== id
+      );
+      type === "cause" ? setCauseList(updatedList) : setConsequenceList(updatedList);
+      toast({ title: "Eliminación exitosa", description: `${type} eliminado correctamente.` });
+    } catch (error) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Error al eliminar",
-        description: "No se pudo eliminar el registro."
-      })
+        description: "No se pudo eliminar el registro.",
+      });
     }
-  }
+  };
 
   return (
     <div className="min-h-screen p-8">
@@ -245,6 +255,7 @@ export default function CausesConsequencesForm() {
                 />
               </div>
               <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
+              
                 {editingConsequenceId ? "Actualizar Consecuencia" : "Registrar Consecuencia"}
               </Button>
             </form>

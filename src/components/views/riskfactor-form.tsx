@@ -121,7 +121,7 @@ export default function RiskFactors() {
       } else {
         const response = await api.post("/risk-factors", payload)
         const newFactor: RiskFactor = {
-          id: response.data.id_factor?.toString() || Date.now().toString(),
+          id: response.data.id_factor?.toString(),
           description: formData.description,
           type: mapRiskTypeIdToName(formData.type, riskTypes),
           type_id: formData.type,
