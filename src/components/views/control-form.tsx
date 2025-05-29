@@ -60,13 +60,9 @@ export default function Controls() {
 
   useEffect(() => {
     const fetchControls = async () => {
-      
       try {
-        
         const responseTypes = await api.get("/risk-control-types")
-        console.log("que llega en tipo control ", responseTypes)
         const transformedTypes = transformTypeControl(responseTypes.data)
-        console.log("que transdorma tipo ", transformedTypes)
         setTypeList(transformedTypes)
 
         const responseControl = await api.get("/controls")
@@ -161,10 +157,10 @@ export default function Controls() {
           description: "El control ha sido actualizado exitosamente.",
         })
       } else {
-        const res = await api.post("/controls", payload)
+        const response = await api.post("/controls", payload)
 
         const newControl = {
-          id: res.data.id_control.toString(),
+          id: response.data.id_control.toString(),
           tipoControl: controlTypeId.toString(),
           descripcion: payload.description,
           frecuencia: payload.frequency,
@@ -246,13 +242,15 @@ export default function Controls() {
                 }}
               >
                 <SelectTrigger
-                  className={`border-violet-200 focus:ring-violet-500 ${errors.control ? "border-red-500" : ""}`}
+                  className={`w-full rounded-md p-2 bg-white text-black  ${errors.control ? "border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Seleccione un tipo de control" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md ">
                   {typeList.map((tipo) => (
-                    <SelectItem key={tipo.id} value={tipo.description}>
+                    <SelectItem key={tipo.id} 
+                    value={tipo.description}
+                    className="hover:bg-violet-100 focus:bg-violet-200">
                       {tipo.description}
                     </SelectItem>
                   ))}
@@ -290,13 +288,14 @@ export default function Controls() {
                 }}
               >
                 <SelectTrigger
-                  className={`border-violet-200 focus:ring-violet-500 ${errors.frecuencia ? "border-red-500" : ""}`}
+                  className={`w-full rounded-md p-2 bg-white !bg-opacity-100 text-black border-violet-200 focus:ring-violet-500 ${errors.frecuencia ? "border-red-500" : ""}`}
                 >
                   <SelectValue placeholder="Seleccione una frecuencia" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white !bg-opacity-100 shadow-md border border-gray-200 rounded-md text-black">
                   {frecuenciaOptions.map((freq) => (
-                    <SelectItem key={freq} value={freq}>
+                    <SelectItem key={freq} value={freq}
+                    className="hover:bg-violet-100 focus:bg-violet-200">
                       {freq}
                     </SelectItem>
                   ))}

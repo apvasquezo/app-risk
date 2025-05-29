@@ -105,9 +105,7 @@ export default function CausesConsequencesForm() {
         description:form.description,
       }
       const endpoint = type === "cause" ? "/causes" : "/consequences"
-      const itemName = type === "cause" ? "Causas" : "Consecuencias"
-
-
+    
       if (editingId !== null) {
         console.log (" a donde va ", endpoint)
         console.log (" cual es cual ", editingId)
@@ -156,6 +154,8 @@ export default function CausesConsequencesForm() {
   };
 
   const handleDelete = async (id: number, type: "cause" | "consequence") => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este tipo de riesgo?")
+    if (!confirmDelete) return    
     try {
       await api.delete(`/${type}s/${id}`);
       const updatedList = (type === "cause" ? causeList : consequenceList).filter(
