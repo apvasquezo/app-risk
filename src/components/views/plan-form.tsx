@@ -2,20 +2,23 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Edit3, Trash2 } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { transformControls } from "@/lib/transformers"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
+import api from "@/lib/axios"
 
 interface ActionPlan {
-  id: string
-  control: string
+  id_plan: string
+  control_id: string
+  control:string //nombre del
   descripcion: string
   fechaInicial: string
   fechaFinal: string
@@ -23,22 +26,20 @@ interface ActionPlan {
   estado: string
 }
 
-// Opciones para los selectores
-const controlOptions = [
-  "Revisión de equipos",
-  "Auditoría interna",
-  "Capacitación de personal",
-  "Monitoreo de sistemas",
-  "Verificación de documentos",
-]
+interface Control {
+  id: string
+  tipoControl: string //id del tipo de control
+  control: string //nombre tipo de control
+  descripcion: string
+  frecuencia: string
+  responsable: string
+}
 
 const estadoOptions = ["Pendiente", "En progreso", "Completado", "Cancelado", "Retrasado"]
 
 export default function ActionPlanForm() {
   const { toast } = useToast()
-
-  const [formData, setFormData] = useState<ActionPlan>({
-    id: "",
+  const [formData, setFormData] = useState({
     control: "",
     descripcion: "",
     fechaInicial: "",
@@ -46,9 +47,7 @@ export default function ActionPlanForm() {
     responsable: "",
     estado: "",
   })
-
   const [editingId, setEditingId] = useState<string | null>(null)
-
   const [errors, setErrors] = useState({
     control: false,
     descripcion: false,
@@ -57,18 +56,50 @@ export default function ActionPlanForm() {
     responsable: false,
     estado: false,
   })
+  const [planList, setPlanList] = useState<ActionPlan[]>([])
+  const [controlList, setControlList] = useState<Control[]>([])
+ 
+  const mapControlIdToName = (typeId: string, typeList: Control[]): string => {
+    const type = typeList.find((type) => type.id === typeId)
+    return type ? type.descripcion : "Control no encontrado"
+  }
+  const mapControlNameToId = (typeName: string, typeList: Control[]): number => {
+    const type = typeList.find((type) => type.descripcion === typeName)
+    return type ? type.id : 0
+  }
 
-  const [actionPlans, setActionPlans] = useState<ActionPlan[]>([
-    {
-      id: "1",
-      control: "Revisión de equipos",
-      descripcion: "Implementar revisión mensual de equipos críticos",
-      fechaInicial: "2025-05-15T10:00",
-      fechaFinal: "2025-06-15T10:00",
-      responsable: "Departamento de Mantenimiento",
-      estado: "En progreso",
-    },
-  ])
+  useEffect(() => {
+    const fetchControls = async () => {
+      try {
+        const responseControl = await api.get("/controls")
+        console.log("que llega en ", responseControl)
+        const transformedControl = transformControls(responseControl.data)        
+        console.log("que transdorma control ", transformedControl)
+        setControlList(transformedControl)
+
+        const responsePlan = await api.get("/plans")
+        
+        const transformedPlan = transforPlan(responsePlan.data)
+        
+        setPlanist(transformedPlan)
+        const controlWithNames = transformedControl.map((control) => ({
+          ...control,
+          control: mapControlIdToName(control.tipoControl, transformedControl),
+        }))
+        setControlList(controlWithNames)
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error al cargar tipos de controles",
+          description: "No se pudo obtener el listado de tipos de controles desde el servidor.",
+        })
+      }
+    }
+    fetchControls()
+  }, [toast])
+
+
 
   const validateForm = () => {
     const newErrors = {
@@ -99,7 +130,6 @@ export default function ActionPlanForm() {
 
   const resetForm = () => {
     setFormData({
-      id: "",
       control: "",
       descripcion: "",
       fechaInicial: "",
@@ -131,15 +161,47 @@ export default function ActionPlanForm() {
     }
 
     try {
+      const controlId = mapControlNameToId(formData.control, controlList)
+      const payload = {
+        description: formData.descripcion,
+        star_date: formData.fechaFinal,
+        end_date: formData.fechaFinal,
+        personal_id: formData.responsable,
+        state: formData.estado,        
+      }
       if (editingId) {
-        setActionPlans(actionPlans.map((plan) => (plan.id === editingId ? { ...formData, id: editingId } : plan)))
+        await api.put(`/plans/${editingId}`, payload)
+        setPlanList((prev) =>
+          prev.map((plan) => plan.id_plan === editingId 
+          ? { 
+            ...plan,
+              control_id:controlId.toString(),
+              control: formData.control,
+              descripcion: formData.descripcion,
+              fechaInicial: formData.fechaFinal,
+              fechaFinal: formData.fechaFinal,
+              responsable: formData.responsable,
+              estado: formData.estado,              
+            } : plan,
+          ),
+        )
+
         toast({
           title: "Plan de acción actualizado",
           description: "El plan de acción ha sido actualizado exitosamente.",
         })
       } else {
-        const newPlan = { ...formData, id: Date.now().toString() }
-        setActionPlans([...actionPlans, newPlan])
+        const response = await api.post("/plans", payload)
+
+        const newPlan = { 
+          id_plan:response.data.id_plan.toString(),
+          control_id:controlId.toString(),
+          descripcion:payload.description,
+          fechaInicial: payload.star_date,
+          fechafinal: payload.end_date,
+          estado: payload.state,          
+        }
+        setPlanList((prev) => [...prev, newPlan])
         toast({
           title: "Plan de acción registrado",
           description: "El nuevo plan de acción ha sido registrado exitosamente.",
@@ -158,16 +220,29 @@ export default function ActionPlanForm() {
 
   const handleEdit = (plan: ActionPlan) => {
     setFormData(plan)
-    setEditingId(plan.id)
+    setEditingId(plan.id_plan)
   }
 
-  const handleDelete = (id: string) => {
-    setActionPlans(actionPlans.filter((plan) => plan.id !== id))
+  const handleDelete = async (id: string) => {
+    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este Plan?")
+    if (!confirmDelete) return 
+    try {
+      await api.delete(`/plans/${id}`)
+    setPlanList(planList.filter((plan) => plan.id_plan !== id))
     toast({
       title: "Plan de acción eliminado",
       description: "El plan de acción ha sido eliminado exitosamente.",
     })
     if (editingId === id) resetForm()
+
+    } catch (error)  {
+      console.error(error)
+      toast({
+        variant: "destructive",
+        title: "Error al eliminar",
+        description: "No se pudo eliminar el control.",
+      })
+    }
   }
 
   return (

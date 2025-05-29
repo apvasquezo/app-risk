@@ -1,85 +1,70 @@
-"use client";
+"use client"
 
 import type React from "react"
 
-import { useEffect, useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { transformProces } from "@/lib/transformers";
-import { transformMacro } from "@/lib/transformers";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import api from "@/lib/axios";
+import { useEffect, useState } from "react"
+import { Edit3, Trash2 } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { transformProces } from "@/lib/transformers"
+import { transformMacro } from "@/lib/transformers"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import api from "@/lib/axios"
 
 interface Process {
-  id: string;
-  macroprocess_id: string;
-  macro:string // nombre macroproceso
-  description: string;
+  id: string
+  macroprocess_id: string
+  macro: string // nombre macroproceso
+  description: string
   personal_id: string
-};
+}
 interface Macro {
   id_macro: number
   description: string
 }
 
 export default function ProcessManagement() {
-  const { toast } = useToast();
-  const [formData, setFormData] = useState({ macro: "", description: "", personal_id:"" });
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [errors, setErrors] = useState({ macro: false, description: false , personal_id:false});
-  const [process, setProcess] = useState<Process[]>([]);
-  const [macro , setMacro] = useState<Macro[]>([]);
+  const { toast } = useToast()
+  const [formData, setFormData] = useState({ macro: "", description: "", personal_id: "" })
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [errors, setErrors] = useState({ macro: false, description: false, personal_id: false })
+  const [process, setProcess] = useState<Process[]>([])
+  const [macro, setMacro] = useState<Macro[]>([])
 
-  const MapMacroIdtoName = (macroId:number, macroList: Macro[]):string =>{
-    const macro = macroList.find((mac) => mac.id_macro=== macroId)
+  const MapMacroIdtoName = (macroId: number, macroList: Macro[]): string => {
+    const macro = macroList.find((mac) => mac.id_macro === macroId)
     return macro ? macro.description : "Macroproceso no encontrado"
   }
 
   useEffect(() => {
-        const fetchProcess= async () => {
-          try {
+    const fetchProcess = async () => {
+      try {
+        const responseMacro = await api.get("/macroprocesses")
+        const transformedMacro = transformMacro(responseMacro.data)
+        setMacro(transformedMacro)
 
-            const responseMacro = await api.get("/macroprocesses" );
-            const transformedMacro = transformMacro(responseMacro.data)
-            setMacro(transformedMacro);
-
-            const responseProces= await api.get("/processes")
-            const transformedProces = transformProces(responseProces.data)
-            const ProcesWithMacroames = transformedProces.map((process) => ({
-              ...process,
-              proces: MapMacroIdtoName(parseInt(process.macroprocess_id), transformedMacro),
-            }))           
-           
-            setProcess(ProcesWithMacroames)
-
-          } catch (error) {
-            console.error(error);
-            toast({
-              variant: "destructive",
-              title: "Error al cargar procesos",
-              description: "No se pudo obtener el listado de procesos desde el servidor.",
-            });
-          }
-        };
-        fetchProcess();
-      }, [toast]);
+        const responseProces = await api.get("/processes")
+        const transformedProces = transformProces(responseProces.data)
+        const ProcesWithMacroames = transformedProces.map((process) => ({
+          ...process,
+          macro: MapMacroIdtoName(Number.parseInt(process.macroprocess_id), transformedMacro),
+        }))
+        console.log("macro es ", ProcesWithMacroames)
+        setProcess(ProcesWithMacroames)
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error al cargar procesos",
+          description: "No se pudo obtener el listado de procesos desde el servidor.",
+        })
+      }
+    }
+    fetchProcess()
+  }, [toast])
 
   const validateForm = () => {
     const newErrors = {
@@ -87,112 +72,114 @@ export default function ProcessManagement() {
       description: !formData.description.trim(),
       personal_id: !formData.personal_id.trim(),
     }
-    setErrors(newErrors);
-    return !newErrors.macro && !newErrors.description && !newErrors.personal_id;
-  };
+    setErrors(newErrors)
+    return !newErrors.macro && !newErrors.description && !newErrors.personal_id
+  }
 
   const resetForm = () => {
-    setFormData({ macro: "", description: "", personal_id:"" });
-    setEditingId(null);
-    setErrors({ macro: false, description: false, personal_id:  false });
-  };
+    setFormData({ macro: "", description: "", personal_id: "" })
+    setEditingId(null)
+    setErrors({ macro: false, description: false, personal_id: false })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (!validateForm()) {
       toast({
         variant: "destructive",
         title: "Error de validación",
         description: "Todos los campos son obligatorios.",
-      });
-      return;
+      })
+      return
     }
 
     try {
-      const payload ={
+      const payload = {
         macroprocess_id: Number.parseInt(formData.macro),
         description: formData.description,
-        personal_id: formData.personal_id,       
+        personal_id: formData.personal_id,
       }
       if (editingId) {
         await api.put(`/processes/${editingId}`, payload)
         setProcess(
           process.map((process) =>
-            process.id === editingId 
-          ? { ...process,
-              macroprocess_id:formData.macro,
-              macro: MapMacroIdtoName(parseInt(formData.macro), macro),
-              description: formData.description,
-              personal_id:formData.personal_id,
-          } : process
-          )
-        );
+            process.id === editingId
+              ? {
+                  ...process,
+                  macroprocess_id: formData.macro,
+                  macro: MapMacroIdtoName(Number.parseInt(formData.macro), macro),
+                  description: formData.description,
+                  personal_id: formData.personal_id,
+                }
+              : process,
+          ),
+        )
         toast({
           title: "Proceso actualizado",
           description: "El proceso ha sido actualizado exitosamente.",
-        });
+        })
       } else {
+        console.log("que envia ", payload)
         const response = await api.post("/processes", payload)
-        const newProcess = { 
+        const newProcess = {
           id: response.data.id_process,
           macroprocess_id: response.data.macroprocess_id,
-          macro:MapMacroIdtoName(parseInt(formData.macro), macro),
+          macro: MapMacroIdtoName(Number.parseInt(formData.macro), macro),
           description: response.data.description,
-          personal_id: response.data.personal_id,         
-         };
-        setProcess([...process, newProcess]);
+          personal_id: response.data.personal_id,
+        }
+        setProcess([...process, newProcess])
         toast({
           title: "Proceso registrado",
           description: "El nuevo proceso ha sido registrado exitosamente.",
-        });
+        })
       }
-      resetForm();
-    } catch (error){
+      resetForm()
+    } catch (error) {
       console.error(error)
       toast({
         variant: "destructive",
         title: "Error",
         description: "Ocurrió un error al procesar la solicitud.",
-      });
+      })
     }
-  };
+  }
 
   const handleEdit = (process: Process) => {
     setFormData({
-      macro:process.macroprocess_id,
+      macro: process.macroprocess_id,
       description: process.description,
-      personal_id:process.personal_id,
-    });
-    setEditingId(process.id);
-  };
+      personal_id: process.personal_id,
+    })
+    setEditingId(process.id)
+  }
 
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este tipo de riesgo?")
-    if (!confirmDelete) return 
+    if (!confirmDelete) return
     try {
-      await api.delete(`/risk-types/${id}`)   
-      setProcess(process.filter((process) => process.id !== id));
+      await api.delete(`/processes/${id}`)
+      setProcess(process.filter((process) => process.id !== id))
 
       toast({
         title: "Proceso eliminado",
         description: "El proceso ha sido eliminado exitosamente.",
-      });
-      if (editingId === id) resetForm();
-    } catch (error){
+      })
+      if (editingId === id) resetForm()
+    } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
         description: "No se pudo eliminar el proceso.",
-      })     
+      })
     }
-  };
+  }
 
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">
         <h1 className="text-3xl font-bold text-violet-900">Procesos</h1>
-        <p className="text-sm text-gray-600">
-        </p>
+        <p className="text-sm text-gray-600"></p>
 
         <Card className="p-6 shadow-lg border-t-4 border-violet-500 space-y-6">
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -203,22 +190,18 @@ export default function ProcessManagement() {
               <Select
                 value={formData.macro}
                 onValueChange={(value) => {
-                  setFormData({ ...formData, macro: value });
-                  setErrors({ ...errors, macro: false });
+                  setFormData({ ...formData, macro: value })
+                  setErrors({ ...errors, macro: false })
                 }}
               >
                 <SelectTrigger
                   className={`w-full rounded-md p-2 bg-white text-black ${
-                    errors.macro
-                      ? "border-red-500"
-                      : formData.macro
-                      ? "border-violet-500"
-                      : "border-violet-200"
+                    errors.macro ? "border-red-500" : formData.macro ? "border-violet-500" : "border-violet-200"
                   }`}
                 >
                   <SelectValue placeholder="Seleccione un microproceso" />
                 </SelectTrigger>
-                <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md text-black">
+                <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
                   {macro.map((item) => (
                     <SelectItem
                       key={item.id_macro}
@@ -230,9 +213,7 @@ export default function ProcessManagement() {
                   ))}
                 </SelectContent>
               </Select>
-              {errors.macro && (
-                <p className="text-sm text-red-500">Este campo es obligatorio</p>
-              )}
+              {errors.macro && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
             </div>
 
             <div className="space-y-2">
@@ -243,16 +224,28 @@ export default function ProcessManagement() {
                 placeholder="Ingrese el nombre del proceso"
                 value={formData.description}
                 onChange={(e) => {
-                  setFormData({ ...formData, description: e.target.value });
-                  setErrors({ ...errors, description: false });
+                  setFormData({ ...formData, description: e.target.value })
+                  setErrors({ ...errors, description: false })
                 }}
-                className={`${
-                  errors.description ? "border-red-500" : "border-violet-200"
-                }`}
+                className={`${errors.description ? "border-red-500" : "border-violet-200"}`}
               />
-              {errors.description && (
-                <p className="text-sm text-red-500">Este campo es obligatorio</p>
-              )}
+              {errors.description && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-violet-700">
+                Responsable <span className="text-red-500">*</span>
+              </label>
+              <Input
+                placeholder="Ingrese el ID del responsable"
+                value={formData.personal_id}
+                onChange={(e) => {
+                  setFormData({ ...formData, personal_id: e.target.value })
+                  setErrors({ ...errors, personal_id: false })
+                }}
+                className={`${errors.personal_id ? "border-red-500" : "border-violet-200"}`}
+              />
+              {errors.personal_id && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
             </div>
 
             <div className="flex gap-2">
@@ -280,6 +273,7 @@ export default function ProcessManagement() {
               <TableRow>
                 <TableHead className="bg-violet-50">Macroproceso</TableHead>
                 <TableHead className="bg-violet-50">Nombre del Proceso</TableHead>
+                <TableHead className="bg-violet-50">Responsable</TableHead>
                 <TableHead className="bg-violet-50">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -288,6 +282,7 @@ export default function ProcessManagement() {
                 <TableRow key={process.id} className="hover:bg-violet-50">
                   <TableCell>{process.macro}</TableCell>
                   <TableCell>{process.description}</TableCell>
+                  <TableCell>{process.personal_id}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
@@ -315,5 +310,5 @@ export default function ProcessManagement() {
         </Card>
       </div>
     </div>
-  );
+  )
 }
