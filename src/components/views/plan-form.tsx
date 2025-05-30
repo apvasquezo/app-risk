@@ -3,11 +3,11 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Edit3, Trash2 } from "lucide-react"
+import { Edit3, Trash2 } from 'lucide-react'
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { transformControls } from "@/lib/transformers"
+import { transformControlPlan, transformPlans } from "@/lib/transformers"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -18,7 +18,7 @@ import api from "@/lib/axios"
 interface ActionPlan {
   id_plan: string
   control_id: string
-  control:string //nombre del
+  control: string
   descripcion: string
   fechaInicial: string
   fechaFinal: string
@@ -28,11 +28,7 @@ interface ActionPlan {
 
 interface Control {
   id: string
-  tipoControl: string //id del tipo de control
-  control: string //nombre tipo de control
   descripcion: string
-  frecuencia: string
-  responsable: string
 }
 
 const estadoOptions = ["Pendiente", "En progreso", "Completado", "Cancelado", "Retrasado"]
@@ -59,47 +55,49 @@ export default function ActionPlanForm() {
   const [planList, setPlanList] = useState<ActionPlan[]>([])
   const [controlList, setControlList] = useState<Control[]>([])
  
-  const mapControlIdToName = (typeId: string, typeList: Control[]): string => {
-    const type = typeList.find((type) => type.id === typeId)
-    return type ? type.descripcion : "Control no encontrado"
+  const mapControlIdToName = (controlId: string, controls: Control[]): string => {
+    const control = controls.find((c) => c.id === controlId)
+    return control ? control.descripcion : "Control no encontrado"
   }
-  const mapControlNameToId = (typeName: string, typeList: Control[]): number => {
-    const type = typeList.find((type) => type.descripcion === typeName)
-    return type ? type.id : 0
+  
+  const mapControlNameToId = (controlName: string, controls: Control[]): string => {
+    const control = controls.find((c) => c.descripcion === controlName)
+    return control ? control.id : ""
   }
 
   useEffect(() => {
-    const fetchControls = async () => {
+    const fetchPlan = async () => {
       try {
+        // Fetch controls
         const responseControl = await api.get("/controls")
-        console.log("que llega en ", responseControl)
-        const transformedControl = transformControls(responseControl.data)        
-        console.log("que transdorma control ", transformedControl)
-        setControlList(transformedControl)
+        console.log("Controls response:", responseControl)
+        const transformedControls = transformControlPlan(responseControl.data)        
+        console.log("Transformed controls:", transformedControls)
+        setControlList(transformedControls)
 
+        // Fetch plans
         const responsePlan = await api.get("/plans")
+        console.log("Plans response:", responsePlan)
+        const transformedPlans = transformPlans(responsePlan.data)
         
-        const transformedPlan = transforPlan(responsePlan.data)
-        
-        setPlanist(transformedPlan)
-        const controlWithNames = transformedControl.map((control) => ({
-          ...control,
-          control: mapControlIdToName(control.tipoControl, transformedControl),
+        // Add control names to plans
+        const plansWithControlNames = transformedPlans.map(plan => ({
+          ...plan,
+          control: mapControlIdToName(plan.control_id, transformedControls)
         }))
-        setControlList(controlWithNames)
+        
+        setPlanList(plansWithControlNames)
       } catch (error) {
         console.error(error)
         toast({
           variant: "destructive",
-          title: "Error al cargar tipos de controles",
-          description: "No se pudo obtener el listado de tipos de controles desde el servidor.",
+          title: "Error al cargar datos",
+          description: "No se pudieron obtener los datos desde el servidor.",
         })
       }
     }
-    fetchControls()
+    fetchPlan()
   }, [toast])
-
-
 
   const validateForm = () => {
     const newErrors = {
@@ -163,22 +161,24 @@ export default function ActionPlanForm() {
     try {
       const controlId = mapControlNameToId(formData.control, controlList)
       const payload = {
+        control_id: controlId,
         description: formData.descripcion,
-        star_date: formData.fechaFinal,
+        star_date: formData.fechaInicial, // Fixed: was using fechaFinal for both
         end_date: formData.fechaFinal,
         personal_id: formData.responsable,
         state: formData.estado,        
       }
+      
       if (editingId) {
         await api.put(`/plans/${editingId}`, payload)
         setPlanList((prev) =>
           prev.map((plan) => plan.id_plan === editingId 
           ? { 
-            ...plan,
-              control_id:controlId.toString(),
+              ...plan,
+              control_id: controlId,
               control: formData.control,
               descripcion: formData.descripcion,
-              fechaInicial: formData.fechaFinal,
+              fechaInicial: formData.fechaInicial, // Fixed: was using fechaFinal
               fechaFinal: formData.fechaFinal,
               responsable: formData.responsable,
               estado: formData.estado,              
@@ -194,11 +194,13 @@ export default function ActionPlanForm() {
         const response = await api.post("/plans", payload)
 
         const newPlan = { 
-          id_plan:response.data.id_plan.toString(),
-          control_id:controlId.toString(),
-          descripcion:payload.description,
+          id_plan: response.data.id.toString(), // Assuming the API returns id
+          control_id: controlId,
+          control: formData.control,
+          descripcion: payload.description,
           fechaInicial: payload.star_date,
-          fechafinal: payload.end_date,
+          fechaFinal: payload.end_date,
+          responsable: payload.personal_id,
           estado: payload.state,          
         }
         setPlanList((prev) => [...prev, newPlan])
@@ -219,28 +221,33 @@ export default function ActionPlanForm() {
   }
 
   const handleEdit = (plan: ActionPlan) => {
-    setFormData(plan)
+    setFormData({
+      control: plan.control,
+      descripcion: plan.descripcion,
+      fechaInicial: plan.fechaInicial,
+      fechaFinal: plan.fechaFinal,
+      responsable: plan.responsable,
+      estado: plan.estado,
+    })
     setEditingId(plan.id_plan)
   }
-
   const handleDelete = async (id: string) => {
-    const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este Plan?")
-    if (!confirmDelete) return 
+    const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este Plan?")
+    if (!confirmDelete) return
     try {
       await api.delete(`/plans/${id}`)
-    setPlanList(planList.filter((plan) => plan.id_plan !== id))
-    toast({
-      title: "Plan de acción eliminado",
-      description: "El plan de acción ha sido eliminado exitosamente.",
-    })
-    if (editingId === id) resetForm()
-
-    } catch (error)  {
+      setPlanList(planList.filter((plan) => plan.id_plan !== id))
+      toast({
+        title: "Plan de acción eliminado",
+        description: "El plan de acción ha sido eliminado exitosamente.",
+      })
+      if (editingId === id) resetForm()
+    } catch (error) {
       console.error(error)
       toast({
         variant: "destructive",
         title: "Error al eliminar",
-        description: "No se pudo eliminar el control.",
+        description: "No se pudo eliminar el plan de acción.",
       })
     }
   }
@@ -273,13 +280,13 @@ export default function ActionPlanForm() {
                   <SelectValue placeholder="Seleccione un control" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                  {controlOptions.map((control) => (
+                  {controlList.map((control) => (
                     <SelectItem
-                      key={control}
-                      value={control}
+                      key={control.id}
+                      value={control.descripcion}
                       className="hover:bg-violet-100 focus:bg-violet-200 text-black"
                     >
-                      {control}
+                      {control.descripcion}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -422,8 +429,8 @@ export default function ActionPlanForm() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {actionPlans.map((plan) => (
-                  <TableRow key={plan.id} className="hover:bg-violet-50">
+                {planList.map((plan) => (
+                  <TableRow key={plan.id_plan} className="hover:bg-violet-50">
                     <TableCell>{plan.control}</TableCell>
                     <TableCell>{plan.descripcion}</TableCell>
                     <TableCell>
@@ -459,7 +466,7 @@ export default function ActionPlanForm() {
                           size="sm"
                           variant="outline"
                           className="text-orange-600 border-orange-600"
-                          onClick={() => handleDelete(plan.id)}
+                          onClick={() => handleDelete(plan.id_plan)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
