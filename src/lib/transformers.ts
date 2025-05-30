@@ -1,4 +1,4 @@
-// Interfaces backend (datos crudos)
+
 export interface Channel {
   id_channel: number;
   description: string;
@@ -12,7 +12,6 @@ export interface Employee {
   area: string;
   correo: string;
 }
-
 
 export interface TypeControl {
   id_typecontrol: number;
@@ -113,6 +112,13 @@ export const transformControls = (data: Control[]) => {
   }));
 };
 
+export const transformControlPlan = (data: Control[]) => {
+  return data.map((ctrl) => ({
+    id: ctrl.id_control.toString(),
+    descripcion: ctrl.description,
+  }));
+};
+
 export interface RiskFactor {
   id_factor: number
   risk_type_id: number
@@ -138,6 +144,7 @@ export const transformTypeControl = (data: TypeControl[]) => {
     description: typecontrol.description,
   }));
 };
+
 export const transformUsers = (data: RawUser[]): User[] => {
   return data.map((user) => ({
     id: user.id_user,
@@ -233,3 +240,25 @@ export const transformMacro= (data: Macro[]) => {
     description: macro.description,
   }))
 }
+
+export interface ActionPlan {
+  id_plan : number,
+  description:string,
+  star_date : Date,
+  end_date : Date,
+  personal_id : string,
+  state:string, 
+}
+
+export const transformPlans = (data: ActionPlan[]) => {
+  return data.map(item => ({
+    id_plan: item.id_plan.toString(),
+    control_id: "", // control_id 
+    control: "", // nombre del control
+    descripcion: item.description ,
+    fechaInicial: item.star_date.toISOString(),
+    fechaFinal: item.end_date.toISOString(),  
+    responsable: item.personal_id,
+    estado: item.state,
+  }));
+};
