@@ -19,7 +19,7 @@ export default function ProfileForm() {
 
   const [formData, setFormData] = useState({
     username: "",
-    role: "usuario",
+    role: "",
     avatar: "",
     newPassword: "",
     confirmPassword: "",

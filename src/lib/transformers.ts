@@ -248,16 +248,18 @@ export interface ActionPlan {
   end_date : Date,
   personal_id : string,
   state:string, 
+  control_id:number,
+  control_name:string
 }
 
 export const transformPlans = (data: ActionPlan[]) => {
   return data.map(item => ({
     id_plan: item.id_plan.toString(),
-    control_id: "", // control_id 
-    control: "", // nombre del control
+    control_id: item.control_id.toString(),
+    control_name: item.control_name,
     descripcion: item.description ,
-    fechaInicial: item.star_date.toISOString(),
-    fechaFinal: item.end_date.toISOString(),  
+    fechaInicial: item.star_date,
+    fechaFinal: item.end_date,  
     responsable: item.personal_id,
     estado: item.state,
   }));
