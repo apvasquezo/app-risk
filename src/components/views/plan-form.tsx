@@ -7,7 +7,7 @@ import { Edit3, Trash2 } from 'lucide-react'
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { transformControlPlan, transformPlans } from "@/lib/transformers"
+import { transformPlans } from "@/lib/transformers"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -17,18 +17,13 @@ import api from "@/lib/axios"
 
 interface ActionPlan {
   id_plan: string
-  control_id: string
-  control: string
   descripcion: string
-  fechaInicial: string
-  fechaFinal: string
+  fechaInicial: Date
+  fechaFinal: Date
   responsable: string
   estado: string
-}
-
-interface Control {
-  id: string
-  descripcion: string
+  control_id: string
+  control_name: string 
 }
 
 const estadoOptions = ["Pendiente", "En progreso", "Completado", "Cancelado", "Retrasado"]
@@ -36,7 +31,8 @@ const estadoOptions = ["Pendiente", "En progreso", "Completado", "Cancelado", "R
 export default function ActionPlanForm() {
   const { toast } = useToast()
   const [formData, setFormData] = useState({
-    control: "",
+    control_id:"",
+    control_name: "",
     descripcion: "",
     fechaInicial: "",
     fechaFinal: "",
@@ -45,7 +41,8 @@ export default function ActionPlanForm() {
   })
   const [editingId, setEditingId] = useState<string | null>(null)
   const [errors, setErrors] = useState({
-    control: false,
+    control_id:false,
+    control_name: false,
     descripcion: false,
     fechaInicial: false,
     fechaFinal: false,
@@ -53,40 +50,13 @@ export default function ActionPlanForm() {
     estado: false,
   })
   const [planList, setPlanList] = useState<ActionPlan[]>([])
-  const [controlList, setControlList] = useState<Control[]>([])
- 
-  const mapControlIdToName = (controlId: string, controls: Control[]): string => {
-    const control = controls.find((c) => c.id === controlId)
-    return control ? control.descripcion : "Control no encontrado"
-  }
-  
-  const mapControlNameToId = (controlName: string, controls: Control[]): string => {
-    const control = controls.find((c) => c.descripcion === controlName)
-    return control ? control.id : ""
-  }
 
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        // Fetch controls
-        const responseControl = await api.get("/controls")
-        console.log("Controls response:", responseControl)
-        const transformedControls = transformControlPlan(responseControl.data)        
-        console.log("Transformed controls:", transformedControls)
-        setControlList(transformedControls)
-
-        // Fetch plans
-        const responsePlan = await api.get("/plans")
-        console.log("Plans response:", responsePlan)
-        const transformedPlans = transformPlans(responsePlan.data)
-        
-        // Add control names to plans
-        const plansWithControlNames = transformedPlans.map(plan => ({
-          ...plan,
-          control: mapControlIdToName(plan.control_id, transformedControls)
-        }))
-        
-        setPlanList(plansWithControlNames)
+        const response = await api.get("/plans")
+        console.log("Plans response:", response)
+        setPlanList(transformPlans(response.data))      
       } catch (error) {
         console.error(error)
         toast({
@@ -101,7 +71,8 @@ export default function ActionPlanForm() {
 
   const validateForm = () => {
     const newErrors = {
-      control: !formData.control.trim(),
+      control_id: !formData.control_id.trim(),
+      control_name: !formData.control_name.trim(),
       descripcion: !formData.descripcion.trim(),
       fechaInicial: !formData.fechaInicial.trim(),
       fechaFinal: !formData.fechaFinal.trim(),
@@ -109,7 +80,6 @@ export default function ActionPlanForm() {
       estado: !formData.estado.trim(),
     }
 
-    // Validación adicional: fecha final debe ser posterior a fecha inicial
     let fechasValidas = true
     if (formData.fechaInicial && formData.fechaFinal) {
       if (new Date(formData.fechaFinal) < new Date(formData.fechaInicial)) {
@@ -128,7 +98,8 @@ export default function ActionPlanForm() {
 
   const resetForm = () => {
     setFormData({
-      control: "",
+      control_id:"",
+      control_name: "",
       descripcion: "",
       fechaInicial: "",
       fechaFinal: "",
@@ -137,7 +108,8 @@ export default function ActionPlanForm() {
     })
     setEditingId(null)
     setErrors({
-      control: false,
+      control_id:false,
+      control_name: false,
       descripcion: false,
       fechaInicial: false,
       fechaFinal: false,
@@ -159,31 +131,34 @@ export default function ActionPlanForm() {
     }
 
     try {
-      const controlId = mapControlNameToId(formData.control, controlList)
       const payload = {
-        control_id: controlId,
         description: formData.descripcion,
-        star_date: formData.fechaInicial, // Fixed: was using fechaFinal for both
+        star_date: formData.fechaInicial, 
         end_date: formData.fechaFinal,
         personal_id: formData.responsable,
         state: formData.estado,        
       }
-      
+      const payloadCA ={
+        cotrol_id: formData.control_id,        
+        action_id:editingId,
+      }     
       if (editingId) {
         await api.put(`/plans/${editingId}`, payload)
         setPlanList((prev) =>
-          prev.map((plan) => plan.id_plan === editingId 
-          ? { 
-              ...plan,
-              control_id: controlId,
-              control: formData.control,
-              descripcion: formData.descripcion,
-              fechaInicial: formData.fechaInicial, // Fixed: was using fechaFinal
-              fechaFinal: formData.fechaFinal,
-              responsable: formData.responsable,
-              estado: formData.estado,              
-            } : plan,
-          ),
+          prev.map((plan) =>
+            plan.id_plan === editingId
+              ? {
+                  ...plan,
+                  control_id: formData.control_id,
+                  control_name: formData.control_name,
+                  descripcion: formData.descripcion,
+                  fechaInicial: new Date(formData.fechaInicial),
+                  fechaFinal: new Date(formData.fechaFinal),
+                  responsable: formData.responsable,
+                  estado: formData.estado,
+                }
+              : plan
+          )
         )
 
         toast({
@@ -192,14 +167,15 @@ export default function ActionPlanForm() {
         })
       } else {
         const response = await api.post("/plans", payload)
-
+        const responseAC= await api.post("/plancontrol", payloadCA)
+        console.log("la tabla intermedia",responseAC)
         const newPlan = { 
-          id_plan: response.data.id.toString(), // Assuming the API returns id
-          control_id: controlId,
-          control: formData.control,
+          id_plan:response.data.id_plan,
+          control_id: formData.control_id,
+          control_name: formData.control_name,
           descripcion: payload.description,
-          fechaInicial: payload.star_date,
-          fechaFinal: payload.end_date,
+          fechaInicial: new Date(payload.star_date),
+          fechaFinal: new Date(payload.end_date),
           responsable: payload.personal_id,
           estado: payload.state,          
         }
@@ -222,15 +198,17 @@ export default function ActionPlanForm() {
 
   const handleEdit = (plan: ActionPlan) => {
     setFormData({
-      control: plan.control,
+      control_id:plan.control_id,
+      control_name: plan.control_name,
       descripcion: plan.descripcion,
-      fechaInicial: plan.fechaInicial,
-      fechaFinal: plan.fechaFinal,
+      fechaInicial: plan.fechaInicial.toISOString(),
+      fechaFinal: plan.fechaFinal.toISOString(),
       responsable: plan.responsable,
       estado: plan.estado,
     })
     setEditingId(plan.id_plan)
   }
+
   const handleDelete = async (id: string) => {
     const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este Plan?")
     if (!confirmDelete) return
@@ -267,31 +245,31 @@ export default function ActionPlanForm() {
               </Label>
               <Select
                 onValueChange={(value) => {
-                  setFormData({ ...formData, control: value })
-                  setErrors({ ...errors, control: false })
+                  setFormData({ ...formData, control_name: value })
+                  setErrors({ ...errors, control_name: false })
                 }}
-                value={formData.control}
+                value={formData.control_name}
               >
                 <SelectTrigger
                   className={`p-2 bg-white text-black rounded-md border ${
-                    errors.control ? "border-red-500" : "border-violet-200"
+                    errors.control_name ? "border-red-500" : "border-violet-200"
                   }`}
                 >
                   <SelectValue placeholder="Seleccione un control" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                  {controlList.map((control) => (
+                  {planList.map((control) => (
                     <SelectItem
-                      key={control.id}
-                      value={control.descripcion}
+                      key={control.control_id}
+                      value={control.control_name}
                       className="hover:bg-violet-100 focus:bg-violet-200 text-black"
                     >
-                      {control.descripcion}
+                      {control.control_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.control && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+              {errors.control_name && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
             </div>
 
             <div className="space-y-2">
@@ -431,7 +409,7 @@ export default function ActionPlanForm() {
               <TableBody>
                 {planList.map((plan) => (
                   <TableRow key={plan.id_plan} className="hover:bg-violet-50">
-                    <TableCell>{plan.control}</TableCell>
+                    <TableCell>{plan.control_name}</TableCell>
                     <TableCell>{plan.descripcion}</TableCell>
                     <TableCell>
                       {plan.fechaInicial ? new Date(plan.fechaInicial).toLocaleString("es-CO") : ""}

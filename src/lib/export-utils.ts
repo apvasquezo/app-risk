@@ -2,7 +2,7 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable"; // solo importa para extender jsPDF (tipado ya está en .d.ts)
 
-// ✅ Tipo genérico seguro para cada entrada de datos
+// Tipo genérico seguro para cada entrada de datos
 type ExportEventData = Record<string, unknown>;
 
 // Función para exportar a Excel
