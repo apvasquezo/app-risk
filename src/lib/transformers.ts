@@ -112,10 +112,14 @@ export const transformControls = (data: Control[]) => {
   }));
 };
 
+
 export const transformControlPlan = (data: Control[]) => {
   return data.map((ctrl) => ({
-    id: ctrl.id_control.toString(),
-    descripcion: ctrl.description,
+    id_control: ctrl.id_control.toString(),
+    control_type_id: ctrl.control_type_id.toString(),
+    description: ctrl.description,
+    frequency: ctrl.frequency,
+    responsible_id: ctrl.responsible_id,
   }));
 };
 

@@ -7,7 +7,7 @@ import { Edit3, Trash2 } from 'lucide-react'
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { transformPlans } from "@/lib/transformers"
+import { transformPlans, transformControlPlan } from "@/lib/transformers"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,6 +24,13 @@ interface ActionPlan {
   estado: string
   control_id: string
   control_name: string 
+}
+interface Control {
+  id_control: string
+  control_type_id: string  
+  description: string
+  frequency: string
+  responsible_id: string
 }
 
 const estadoOptions = ["Pendiente", "En progreso", "Completado", "Cancelado", "Retrasado"]
@@ -50,12 +57,26 @@ export default function ActionPlanForm() {
     estado: false,
   })
   const [planList, setPlanList] = useState<ActionPlan[]>([])
+  const [controlList, setControlList] = useState<Control[]>([])
+ 
+  const mapControlToName = (typeId: string, controlList: Control[]): string => {
+    const type = controlList.find((type) => type.id_control === typeId)
+    return type ? type.description : "Control no encontrado"
+  }
+
+  const mapControlNameToId = (typeName: string, controlList: Control[]): number => {
+    const type = controlList.find((type) => type.description === typeName)
+    return type ? parseInt(type.id_control) : 0
+  }
 
   useEffect(() => {
     const fetchPlan = async () => {
       try {
+        const responseControl = await api.get("/controls")
+        const transformedControl = transformControlPlan(responseControl.data)
+        setControlList(transformedControl)
+        
         const response = await api.get("/plans")
-        console.log("Plans response:", response)
         setPlanList(transformPlans(response.data))      
       } catch (error) {
         console.error(error)
@@ -131,6 +152,7 @@ export default function ActionPlanForm() {
     }
 
     try {
+      console.log
       const payload = {
         description: formData.descripcion,
         star_date: formData.fechaInicial, 
@@ -138,10 +160,8 @@ export default function ActionPlanForm() {
         personal_id: formData.responsable,
         state: formData.estado,        
       }
-      const payloadCA ={
-        cotrol_id: formData.control_id,        
-        action_id:editingId,
-      }     
+      console.log("el payload del plan ", payload)
+
       if (editingId) {
         await api.put(`/plans/${editingId}`, payload)
         setPlanList((prev) =>
@@ -166,7 +186,13 @@ export default function ActionPlanForm() {
           description: "El plan de acción ha sido actualizado exitosamente.",
         })
       } else {
+
         const response = await api.post("/plans", payload)
+        const payloadCA ={
+          control_id: parseInt(formData.control_id),       
+          action_id:response.data.id_plan,
+        }   
+        console.log("el apyload de plancontrol ", payloadCA)         
         const responseAC= await api.post("/plancontrol", payloadCA)
         console.log("la tabla intermedia",responseAC)
         const newPlan = { 
@@ -244,12 +270,19 @@ export default function ActionPlanForm() {
                 Control <span className="text-red-500">*</span>
               </Label>
               <Select
-                onValueChange={(value) => {
-                  setFormData({ ...formData, control_name: value })
-                  setErrors({ ...errors, control_name: false })
-                }}
-                value={formData.control_name}
-              >
+                  onValueChange={(value) => {
+                    const selected = controlList.find((ctrl) => ctrl.description === value)
+                    if (selected) {
+                      setFormData({
+                        ...formData,
+                        control_name: selected.description,
+                        control_id: selected.id_control,
+                      })
+                      setErrors({ ...errors, control_name: false })
+                    }
+                  }}
+                  value={formData.control_name}
+                >
                 <SelectTrigger
                   className={`p-2 bg-white text-black rounded-md border ${
                     errors.control_name ? "border-red-500" : "border-violet-200"
@@ -258,13 +291,13 @@ export default function ActionPlanForm() {
                   <SelectValue placeholder="Seleccione un control" />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                  {planList.map((control) => (
+                  {controlList.map((control) => (
                     <SelectItem
-                      key={control.control_id}
-                      value={control.control_name}
+                      key={control.id_control}
+                      value={control.description}
                       className="hover:bg-violet-100 focus:bg-violet-200 text-black"
                     >
-                      {control.control_name}
+                      {control.description}
                     </SelectItem>
                   ))}
                 </SelectContent>
