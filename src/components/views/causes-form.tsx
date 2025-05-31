@@ -72,7 +72,7 @@ export default function CausesConsequencesForm() {
     return !newErrors.description
   }
 
-  const resetForm = (type: "cause" | "consequense") => {
+  const resetForm = (type: "cause" | "consequence") => {
     if (type === "cause") {
       setCauseForm({ description: ""})
       setEditingCauseId(null)
@@ -144,7 +144,7 @@ export default function CausesConsequencesForm() {
        } else  {
         setConsequenceForm({ description: "" });
        }
-      resetForm
+       resetForm(type);
     } catch (error) {
       console.log(error);
       toast({
