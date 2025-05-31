@@ -139,7 +139,11 @@ export default function CausesConsequencesForm() {
         }
         toast({ title: "Registro exitoso", description: `${type} registrado correctamente.` });
       }
-      type === "cause" ? setCauseForm({ description: "" }) : setConsequenceForm({ description: "" });
+      if (type === "cause") { 
+        setCauseForm({ description: "" }) 
+       } else  {
+        setConsequenceForm({ description: "" });
+       }
       resetForm
     } catch (error) {
       console.log(error);
