@@ -28,4 +28,3 @@ const AuthMiddleware = ({ children, rolesAllowed }: MiddlewareProps) => {
 };
 
 export default AuthMiddleware;
-
