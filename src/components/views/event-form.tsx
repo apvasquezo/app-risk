@@ -161,28 +161,30 @@ export default function RiskManagement() {
                     setFormData({ ...formData, [key]: value });
                     setErrors({ ...errors, [key]: false });
                   }}
-                  value={formData[key]}
+                  value={formData[key as keyof typeof formData] || ""}
                 >
-                <SelectTrigger
-                className={`p-2 bg-white text-black rounded-md border ${
-                    errors[key] ? "border-red-500" : "border-violet-200"
-                }`}
-                >
-                <SelectValue placeholder={`Seleccione un ${label.toLowerCase()}`} />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                {options.map((option) => (
-                    <SelectItem
-                    key={option}
-                    value={option}
-                    className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                    >
-                    {option}
-                    </SelectItem>
-                ))}
-                </SelectContent>
+                  <SelectTrigger
+                    className={`p-2 bg-white text-black rounded-md border ${
+                      errors[key as keyof typeof errors] ? "border-red-500" : "border-violet-200"
+                    }`}
+                  >
+                    <SelectValue placeholder={`Seleccione un ${label.toLowerCase()}`} />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
+                    {options.map((option) => (
+                      <SelectItem
+                        key={option}
+                        value={option}
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                      >
+                        {option}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
-                {errors[key] && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors[key as keyof typeof errors] && (
+                  <p className="text-sm text-red-500">Este campo es obligatorio</p>
+                )}
               </div>
             ))}
 
