@@ -55,7 +55,7 @@ export default function ProcessManagement() {
         console.log("macro es ", ProcesWithMacroames)
         setProcess(ProcesWithMacroames)
       } catch (error) {
-        console.error(error)
+        console.log(error)
         toast({
           variant: "destructive",
           title: "Error al cargar procesos",
@@ -136,7 +136,7 @@ export default function ProcessManagement() {
       }
       resetForm()
     } catch (error) {
-      console.error(error)
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",
@@ -167,6 +167,7 @@ export default function ProcessManagement() {
       })
       if (editingId === id) resetForm()
     } catch (error) {
+      console.log(error)
       toast({
         variant: "destructive",
         title: "Error",
