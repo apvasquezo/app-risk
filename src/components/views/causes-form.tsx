@@ -36,9 +36,8 @@ export default function CausesConsequencesForm() {
   const [causeList, setCauseList] = useState<Cause[]>([]);
   const [consequenceList, setConsequenceList] = useState<Consequence[]>([]);
 
-  const [causeErrors, setCauseErrors] = useState({description: false})
-  const [conseErrors, setconseErrors] = useState({description: false})
-
+  const [errors, setErrors] = useState({description: false})
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -65,9 +64,9 @@ export default function CausesConsequencesForm() {
       description: !form.description.trim(),
     }
     if (type === "cause") {
-      setCauseErrors(newErrors)
+      setErrors(newErrors)
     } else {
-      setconseErrors(newErrors)
+      setErrors(newErrors)
     }
 
     return !newErrors.description
@@ -77,11 +76,11 @@ export default function CausesConsequencesForm() {
     if (type === "cause") {
       setCauseForm({ description: ""})
       setEditingCauseId(null)
-      setCauseErrors({ description: false })
+      setErrors({ description: false })
     } else {
       setConsequenceForm({ description: "" })
       setEditingConsequenceId(null)
-      setconseErrors({ description: false })
+      setErrors({ description: false })
     }
   }
 
@@ -119,6 +118,7 @@ export default function CausesConsequencesForm() {
         toast({ 
           title: "Actualización exitosa", 
           description: `${type} actualizado correctamente.` });
+
       } else {
         console.log("payload ", payload)
         const res = await api.post(`/${type}s`, payload);
@@ -133,8 +133,9 @@ export default function CausesConsequencesForm() {
         toast({ title: "Registro exitoso", description: `${type} registrado correctamente.` });
       }
       type === "cause" ? setCauseForm({ description: "" }) : setConsequenceForm({ description: "" });
+      resetForm
     } catch (error) {
-      console.error(error);
+      console.log(error);
       toast({
         variant: "destructive",
         title: "Error al guardar",
@@ -187,10 +188,17 @@ export default function CausesConsequencesForm() {
                 </label>
                 <Input
                   value={causeForm.description}
-                  onChange={(e) => setCauseForm({ ...causeForm, description: e.target.value })}
+                  onChange={(e) => {setCauseForm({ ...causeForm, description: e.target.value })
+                  setErrors({description: false});
+                }}
                   placeholder="Descripción de la causa"
-                  className="border-violet-200 focus:ring-violet-500"
+                  className={`border-violet-200 focus:ring-violet-500 ${
+                    errors.description ? "border-red-500" : ""
+                  }`}
                 />
+              {errors.description && (
+                <p className="text-sm text-red-500">Este campo es obligatorio</p>
+              )}                
               </div>
               <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
                 {editingCauseId ? "Actualizar Causa" : "Registrar Causa"}
