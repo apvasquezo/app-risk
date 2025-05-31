@@ -113,8 +113,13 @@ export default function CausesConsequencesForm() {
         const updatedList = (type === "cause" ? causeList : consequenceList).map((item) =>
           item.id === editingId ? { ...item, description: form.description } : item
         );
-        type === "cause" ? setCauseList(updatedList) : setConsequenceList(updatedList);
-        type === "cause" ? setEditingCauseId(null) : setEditingConsequenceId(null);
+        if (type === "cause") {
+          setCauseList(updatedList) 
+          setEditingCauseId(null)
+         } else { 
+          setConsequenceList(updatedList)
+          setEditingConsequenceId(null)
+         };
         toast({ 
           title: "Actualización exitosa", 
           description: `${type} actualizado correctamente.` });
@@ -127,9 +132,11 @@ export default function CausesConsequencesForm() {
           id: type === "cause" ? res.data.id_cause : res.data.id_consequence,
           description: res.data.description
         };
-        type === "cause"
-          ? setCauseList((prev) => [...prev, newItem])
-          : setConsequenceList((prev) => [...prev, newItem]);
+        if (type === "cause") {
+          setCauseList((prev) => [...prev, newItem])
+        } else {
+           setConsequenceList((prev) => [...prev, newItem])
+        }
         toast({ title: "Registro exitoso", description: `${type} registrado correctamente.` });
       }
       type === "cause" ? setCauseForm({ description: "" }) : setConsequenceForm({ description: "" });
@@ -162,7 +169,11 @@ export default function CausesConsequencesForm() {
       const updatedList = (type === "cause" ? causeList : consequenceList).filter(
         (item) => item.id !== id
       );
-      type === "cause" ? setCauseList(updatedList) : setConsequenceList(updatedList);
+      if (type === "cause") { 
+        setCauseList(updatedList) 
+      } else {
+        setConsequenceList(updatedList)
+      }
       toast({ title: "Eliminación exitosa", description: `${type} eliminado correctamente.` });
     } catch (error) {
       console.error(error);
