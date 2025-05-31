@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import ControlSuggestionModal from "@/components/views/ControlSuggestionModa"
+import ControlSuggestionModal from "@/components/views/ControlSuggestionModal"
 
 export default function SugerenciaControlesPage() {
   const [open, setOpen] = useState(true)

@@ -13,8 +13,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
 import { ExportButtons } from "@/components/ui/export-buttons"
+import  ControlSuggestionModal from "@/components/views/ControlSuggestionModal"
 
 interface EventEntry {
+  [key: string]: unknown;
   id: string
   eventId: string
   fechaInicio: string
@@ -84,7 +86,8 @@ export default function EventManagement() {
     responsable: false,
     estado: false,
   })
-
+  const [showSuggestionModal, setShowSuggestionModal] = useState(false)
+  const [isLoadingModal, setIsLoadingModal] = useState(false)
   const [eventEntries, setEventEntries] = useState<EventEntry[]>([
     {
       id: "1",
@@ -660,6 +663,11 @@ export default function EventManagement() {
             </Table>
           </div>
         </Card>
+          <ControlSuggestionModal
+            open={showSuggestionModal}
+            loading={isLoadingModal}
+            onClose={() => setShowSuggestionModal(false)}
+          />
       </div>
     </div>
   )
