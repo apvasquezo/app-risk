@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { ExportButtons } from "@/components/ui/export-buttons"
 
 interface ControlEvaluation {
+  [key: string]: unknown;
   id: string
   idControl: string
   idEvento: string
@@ -26,7 +27,6 @@ interface ControlEvaluation {
   observacion: string
 }
 
-// Opciones para los selectores
 const nivelProbabilidadOptions = ["Bajo", "Medio", "Alto", "Muy Alto", "Crítico"]
 const nivelImpactoOptions = ["Bajo", "Medio", "Alto", "Muy Alto", "Crítico"]
 const observacionOptions = ["Registro Evento Primera vez", "Primera evaluacion"]
@@ -84,8 +84,7 @@ export default function ControlEvaluationForm() {
       fechaProximaEvaluacion: !formData.fechaProximaEvaluacion.trim(),
       observacion: !formData.observacion.trim(),
     }
-
-    // Validación adicional: fecha próxima evaluación debe ser posterior a fecha evaluación
+    // Validación fechas
     let fechasValidas = true
     if (formData.fechaEvaluacion && formData.fechaProximaEvaluacion) {
       if (new Date(formData.fechaProximaEvaluacion) < new Date(formData.fechaEvaluacion)) {
