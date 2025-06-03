@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Edit3, Trash2 } from 'lucide-react'
 import { Card } from "@/components/ui/card"
@@ -11,15 +10,15 @@ import { transformPlans, transformControlPlan } from "@/lib/transformers"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useToast } from "@/hooks/use-toast"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { cn } from "@/lib/utils"
+import { cn, formatDate, toInputDate } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import api from "@/lib/axios"
 
 interface ActionPlan {
   id_plan: string
   descripcion: string
-  fechaInicial: Date
-  fechaFinal: Date
+  fechaInicial: string
+  fechaFinal: string
   responsable: string
   estado: string
   control_id: string
@@ -59,16 +58,6 @@ export default function ActionPlanForm() {
   const [planList, setPlanList] = useState<ActionPlan[]>([])
   const [controlList, setControlList] = useState<Control[]>([])
  
-  const mapControlToName = (typeId: string, controlList: Control[]): string => {
-    const type = controlList.find((type) => type.id_control === typeId)
-    return type ? type.description : "Control no encontrado"
-  }
-
-  const mapControlNameToId = (typeName: string, controlList: Control[]): number => {
-    const type = controlList.find((type) => type.description === typeName)
-    return type ? parseInt(type.id_control) : 0
-  }
-
   useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -77,7 +66,8 @@ export default function ActionPlanForm() {
         setControlList(transformedControl)
         
         const response = await api.get("/plans")
-        setPlanList(transformPlans(response.data))      
+        setPlanList(transformPlans(response.data))  
+
       } catch (error) {
         console.error(error)
         toast({
@@ -112,7 +102,6 @@ export default function ActionPlanForm() {
         fechasValidas = false
       }
     }
-
     setErrors(newErrors)
     return !Object.values(newErrors).some((error) => error) && fechasValidas
   }
@@ -152,7 +141,6 @@ export default function ActionPlanForm() {
     }
 
     try {
-      console.log
       const payload = {
         description: formData.descripcion,
         star_date: formData.fechaInicial, 
@@ -163,7 +151,8 @@ export default function ActionPlanForm() {
       console.log("el payload del plan ", payload)
 
       if (editingId) {
-        await api.put(`/plans/${editingId}`, payload)
+        const planId = parseInt(editingId, 10)
+        await api.put(`/plans/${planId}`, payload)
         setPlanList((prev) =>
           prev.map((plan) =>
             plan.id_plan === editingId
@@ -172,8 +161,8 @@ export default function ActionPlanForm() {
                   control_id: formData.control_id,
                   control_name: formData.control_name,
                   descripcion: formData.descripcion,
-                  fechaInicial: new Date(formData.fechaInicial),
-                  fechaFinal: new Date(formData.fechaFinal),
+                  fechaInicial: formData.fechaInicial,
+                  fechaFinal: formData.fechaFinal,
                   responsable: formData.responsable,
                   estado: formData.estado,
                 }
@@ -185,30 +174,29 @@ export default function ActionPlanForm() {
           title: "Plan de acción actualizado",
           description: "El plan de acción ha sido actualizado exitosamente.",
         })
+        
       } else {
-
         const response = await api.post("/plans", payload)
         const payloadCA ={
           control_id: parseInt(formData.control_id),       
           action_id:response.data.id_plan,
-        }   
-        console.log("el apyload de plancontrol ", payloadCA)         
+        }       
+         
         const responseAC= await api.post("/plancontrol", payloadCA)
-        console.log("la tabla intermedia",responseAC)
         const newPlan = { 
           id_plan:response.data.id_plan,
-          control_id: formData.control_id,
+          control_id: responseAC.data.control_id,
           control_name: formData.control_name,
           descripcion: payload.description,
-          fechaInicial: new Date(payload.star_date),
-          fechaFinal: new Date(payload.end_date),
+          fechaInicial: payload.star_date,
+          fechaFinal: payload.end_date,
           responsable: payload.personal_id,
           estado: payload.state,          
         }
         setPlanList((prev) => [...prev, newPlan])
         toast({
           title: "Plan de acción registrado",
-          description: "El nuevo plan de acción ha sido registrado exitosamente.",
+          description: "El nuevo plan de acción registrado exitosamente.",
         })
       }
       resetForm()
@@ -224,23 +212,29 @@ export default function ActionPlanForm() {
 
   const handleEdit = (plan: ActionPlan) => {
     setFormData({
-      control_id:plan.control_id,
+      control_id: plan.control_id,
       control_name: plan.control_name,
       descripcion: plan.descripcion,
-      fechaInicial: plan.fechaInicial.toISOString(),
-      fechaFinal: plan.fechaFinal.toISOString(),
+      fechaInicial: plan.fechaInicial ? toInputDate(plan.fechaInicial) : "",
+      fechaFinal: plan.fechaFinal ? toInputDate(plan.fechaFinal) : "",
       responsable: plan.responsable,
       estado: plan.estado,
     })
+
     setEditingId(plan.id_plan)
   }
+  
 
   const handleDelete = async (id: string) => {
+    
     const confirmDelete = window.confirm("¿Estás seguro de que deseas eliminar este Plan?")
-    if (!confirmDelete) return
+    if (!confirmDelete) return    
+    const planId = parseInt(id, 10)
     try {
-      await api.delete(`/plans/${id}`)
-      setPlanList(planList.filter((plan) => plan.id_plan !== id))
+      console.log("que plan se elimina ", planId)
+      setPlanList(planList.filter((plan) =>  plan.id_plan!== id))
+      await api.delete(`/plans/${planId}`)      
+      console.log ("ya pase del delete ")      
       toast({
         title: "Plan de acción eliminado",
         description: "El plan de acción ha sido eliminado exitosamente.",
@@ -328,7 +322,7 @@ export default function ActionPlanForm() {
                   Fecha inicial <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  type="date"
                   value={formData.fechaInicial}
                   onChange={(e) => {
                     setFormData({ ...formData, fechaInicial: e.target.value })
@@ -344,7 +338,7 @@ export default function ActionPlanForm() {
                   Fecha final <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  type="date"
                   value={formData.fechaFinal}
                   onChange={(e) => {
                     setFormData({ ...formData, fechaFinal: e.target.value })
@@ -362,7 +356,7 @@ export default function ActionPlanForm() {
               </Label>
               <Input
                 required
-                placeholder="Ingrese el área o persona responsable"
+                placeholder="Ingrese ID persona responsable"
                 value={formData.responsable}
                 onChange={(e) => {
                   setFormData({ ...formData, responsable: e.target.value })
@@ -445,9 +439,9 @@ export default function ActionPlanForm() {
                     <TableCell>{plan.control_name}</TableCell>
                     <TableCell>{plan.descripcion}</TableCell>
                     <TableCell>
-                      {plan.fechaInicial ? new Date(plan.fechaInicial).toLocaleString("es-CO") : ""}
+                      {plan.fechaInicial ? formatDate(plan.fechaInicial) : ""}
                     </TableCell>
-                    <TableCell>{plan.fechaFinal ? new Date(plan.fechaFinal).toLocaleString("es-CO") : ""}</TableCell>
+                    <TableCell>{plan.fechaFinal ? formatDate(plan.fechaFinal) : ""}</TableCell>
                     <TableCell>{plan.responsable}</TableCell>
                     <TableCell>
                       <span

@@ -61,7 +61,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-80">
          <AreaChart
-              categories={["Pendiente", "En progreso", "Finalizado"]}
+              categories={["Sin controlar", "En progreso", "Controlado"]}
               series={[
                 { name: "Cantidad", data: [3, 6, 5] },
               ]}
@@ -76,7 +76,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-80">
               <PieChart
-              labels={["Operacional", "Legal", "Financiero", "Tecnológico"]}
+              labels={["Pendiente", "En progreso", "Completado", "Cancelado"]}
               data={[10, 4, 6, 8]}
             />
           </CardContent>
