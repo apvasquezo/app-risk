@@ -11,10 +11,11 @@ import { useAuth } from "@/context/AuthContext";
 import { Eye, EyeOff, Lock, User } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast"
 import axios from "axios"
 
 export default function LoginForm() {
+  const { toast } = useToast()
   const { setUser } = useAuth();
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -24,7 +25,8 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
+    console.log("el usuario ", username)
+    console.log("la contraseña ", password)
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
         username,
@@ -49,14 +51,20 @@ export default function LoginForm() {
           break;
       }
   
-      toast.success("Inicio de sesión exitoso");
+      toast({
+        description: "Logueo exitoso",
+      })
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error("Error en el inicio de sesión:", error.response?.data?.detail || error.message);
       } else {
         console.error("Error inesperado:", error);
       }
-      toast.error("Credenciales inválidas");
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Credenciales inválidas.",
+      })
     }
   }
 

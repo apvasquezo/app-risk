@@ -1,15 +1,16 @@
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
-import "jspdf-autotable"; // solo importa para extender jsPDF (tipado ya está en .d.ts)
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable"; 
+import "jspdf-autotable"; 
 
-// Tipo genérico seguro para cada entrada de datos
 type ExportEventData = Record<string, unknown>;
 
 // Función para exportar a Excel
 export const exportToExcel = (data: ExportEventData[], fileName: string) => {
+  console.log("recibe para exportar ", data)
   const workbook = XLSX.utils.book_new();
   const worksheet = XLSX.utils.json_to_sheet(data);
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Riesgos");
+  XLSX.utils.book_append_sheet(workbook, worksheet, `{fileName}`);
   XLSX.writeFile(workbook, `${fileName}.xlsx`);
 };
 
@@ -49,7 +50,7 @@ export const exportToPDF = (data: ExportEventData[], fileName: string, columns: 
     });
   });
 
-  doc.autoTable({
+  autoTable(doc, {
     head: [tableColumn],
     body: tableRows,
     startY: 40,

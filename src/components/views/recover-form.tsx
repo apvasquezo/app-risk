@@ -155,16 +155,6 @@ export default function RecuperarContrasena() {
               Volver al inicio de sesión
             </Button>
           </div>
-
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-100">
-              Credenciales de prueba:
-              <br />
-              Usuario: admin
-              <br />
-              Email: admin@example.com
-            </p>
-          </div>
         </Card>
       </div>
     </div>

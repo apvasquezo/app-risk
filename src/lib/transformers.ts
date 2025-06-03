@@ -248,8 +248,8 @@ export const transformMacro= (data: Macro[]) => {
 export interface ActionPlan {
   id_plan : number,
   description:string,
-  star_date : Date,
-  end_date : Date,
+  star_date : string,
+  end_date : string,
   personal_id : string,
   state:string, 
   control_id:number,
