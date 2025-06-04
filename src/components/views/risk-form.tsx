@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Edit3, Trash2, Lightbulb } from "lucide-react"
+import { Edit3, Trash2, Lightbulb, Save, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,10 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
 import { ExportButtons } from "@/components/ui/export-buttons"
-import  ControlSuggestionModal from "@/components/views/ControlSuggestionModal"
+import ControlSuggestionModal from "@/components/views/ControlSuggestionModal"
+import { cn } from "@/lib/utils"
 
 interface EventEntry {
-  [key: string]: unknown;
+  [key: string]: unknown
   id: string
   eventId: string
   fechaInicio: string
@@ -35,24 +36,51 @@ interface EventEntry {
   ciudad: string
   responsable: string
   estado: string
+  causa1?: string
+  causa2?: string
+  consecuencia1?: string
+  consecuencia2?: string
 }
 
-const predefinedFactorRiesgo = [
-  "Fraude Interno",
-  "Fraude Externo",
-  "Relaciones Laborales",
-  "Clientes",
-  "Daños a Activos",
-  "Fallas Tecnológicas",
-  "Ejecución de Procesos",
-]
-const predefinedProcesos = ["Operativo", "Administrativo", "Financiero", "Comercial", "Tecnológico"]
-const predefinedCanales = ["Oficina", "Internet", "Móvil", "Cajero", "Corresponsal", "Call Center"]
-const predefinedEstados = ["Controlado", "En Proceso", "Pendiente"]
+// Definir el tipo para los datos del riesgo
+interface RiskData {
+  field1: string // Tipo de Riesgo
+  field2: string // Factor de Riesgo  
+  field3: string // Proceso
+  field4: string // Canal
+  field5: string // Evento
+}
 
-export default function EventManagement() {
+const predefinedEstados = ["Controlado", "En Proceso", "Pendiente"]
+const procesos = ["Ventas", "Operaciones", "Finanzas", "Recursos Humanos", "Tecnología", "Legal"]
+const canales = ["Presencial", "Digital", "Telefónico", "Correo", "Otro"]
+const ciudades = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Otra"]
+const causas = [
+  "Falta de capacitación",
+  "Error humano",
+  "Falla de sistema",
+  "Proceso inadecuado",
+  "Falta de supervisión",
+  "Comunicación deficiente",
+  "Recursos insuficientes",
+  "Otra",
+]
+const consecuencias = [
+  "Pérdida financiera",
+  "Daño reputacional",
+  "Incumplimiento regulatorio",
+  "Interrupción operativa",
+  "Pérdida de clientes",
+  "Riesgo legal",
+  "Impacto ambiental",
+  "Otra",
+]
+const servicios = ["Crédito", "Ahorro", "Inversión", "Seguros", "Tarjetas", "Transferencias", "Consultoría", "Otro"]
+
+export default function EventRisk() {
   const { toast } = useToast()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EventEntry>({
+    id: "",
     eventId: "",
     fechaInicio: "",
     fechaFinal: "",
@@ -70,6 +98,10 @@ export default function EventManagement() {
     ciudad: "",
     responsable: "",
     estado: "",
+    causa1: "",
+    causa2: "",
+    consecuencia1: "",
+    consecuencia2: "",
   })
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -88,48 +120,34 @@ export default function EventManagement() {
   })
   const [showSuggestionModal, setShowSuggestionModal] = useState(false)
   const [isLoadingModal, setIsLoadingModal] = useState(false)
-  const [eventEntries, setEventEntries] = useState<EventEntry[]>([
-    {
-      id: "1",
-      eventId: "EV-001",
-      fechaInicio: "2023-04-15T10:30",
-      fechaFinal: "2023-04-15T14:45",
-      fechaDescubrimiento: "2023-04-16T08:20",
-      fechaContabilizacion: "2023-04-20T11:00",
-      cuantia: "1500000",
-      cuantiaRecuperada: "500000",
-      cuantiaRecuperadaSeguros: "750000",
-      factorRiesgo: "Fraude Externo",
-      cuentaContable: "61950505",
-      productoServicio: "Cuenta de Ahorros",
-      proceso: "Operativo",
-      descripcion: "Suplantación de identidad para retiro de fondos",
-      canal: "Oficina",
-      ciudad: "Bogotá",
-      responsable: "Juan Pérez",
-      estado: "Controlado",
-    },
-    {
-      id: "2",
-      eventId: "EV-002",
-      fechaInicio: "2023-05-10T09:15",
-      fechaFinal: "2023-05-10T11:30",
-      fechaDescubrimiento: "2023-05-10T16:00",
-      fechaContabilizacion: "2023-05-15T10:00",
-      cuantia: "800000",
-      cuantiaRecuperada: "0",
-      cuantiaRecuperadaSeguros: "650000",
-      factorRiesgo: "Fallas Tecnológicas",
-      cuentaContable: "61950510",
-      productoServicio: "Banca Virtual",
-      proceso: "Tecnológico",
-      descripcion: "Caída del sistema durante transacciones",
-      canal: "Internet",
-      ciudad: "Medellín",
-      responsable: "Ana Gómez",
-      estado: "En Proceso",
-    },
-  ])
+  const [eventEntries, setEventEntries] = useState<EventEntry[]>([])
+  const [modalOpen, setModalOpen] = useState(false)
+  const [riskData, setRiskData] = useState<RiskData>({
+    field1: "", // Tipo de Riesgo
+    field2: "", // Factor de Riesgo  
+    field3: "", // Proceso
+    field4: "", // Canal
+    field5: ""  // Evento
+  })
+  // Al abrir el modal con datos
+  const openSuggestionsModal = (data: RiskData) => {
+    setRiskData(data)
+    setShowSuggestionModal(true) // Activar el flag
+    setModalOpen(true)
+  }
+
+  // Función para cerrar el modal
+  const closeSuggestionsModal = () => {
+    setModalOpen(false)
+    setShowSuggestionModal(false) // Desactivar el flag
+    setRiskData({
+      field1: "",
+      field2: "",
+      field3: "",
+      field4: "",
+      field5: ""
+    })
+  }
 
   const validateForm = () => {
     const newErrors = {
@@ -151,6 +169,7 @@ export default function EventManagement() {
 
   const resetForm = () => {
     setFormData({
+      id: "",
       eventId: "",
       fechaInicio: "",
       fechaFinal: "",
@@ -168,6 +187,10 @@ export default function EventManagement() {
       ciudad: "",
       responsable: "",
       estado: "",
+      causa1: "",
+      causa2: "",
+      consecuencia1: "",
+      consecuencia2: "",
     })
     setEditingId(null)
     setErrors({
@@ -232,253 +255,153 @@ export default function EventManagement() {
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(Number(value))
   }
 
-  return (
-    <div className="min-h-screen p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <h1 className="text-3xl font-bold text-violet-900">Registro de Riesgos</h1>
+  const handleSuggestControl = () => {
+    setIsLoadingModal(true)
+    setShowSuggestionModal(true)
+    // Simulate loading for the modal
+    setTimeout(() => {
+      setIsLoadingModal(false)
+    }, 1000)
+  }
 
-        <Card className="p-6 shadow-lg border-t-4 border-violet-500">
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Primera columna */}
-            <div className="space-y-6">
+  const handleCancel = () => {
+    resetForm()
+    toast({
+      title: "Operación cancelada",
+      description: "Se ha cancelado la edición del registro.",
+    })
+  }
+
+  return (
+    <div className="min-h-screen p-4 md:p-8 bg-gray-50">
+      <div className="max-w-6xl mx-auto space-y-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-violet-900">Registro de Riesgos</h1>
+
+        <Card className="p-4 md:p-6 shadow-lg border-t-4 border-violet-500">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {/* Columna 1 */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="eventId" className="text-sm font-medium text-violet-700">
                   Id (Código del evento) <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  placeholder="Ingrese el código"
+                  id="eventId"
                   value={formData.eventId}
-                  onChange={(e) => {
-                    setFormData({ ...formData, eventId: e.target.value })
-                    setErrors({ ...errors, eventId: false })
-                  }}
-                  className={errors.eventId ? "border-red-500" : "border-violet-200"}
+                  onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+                  placeholder="Ingrese el código"
+                  className={cn(errors.eventId ? "border-red-500" : "border-violet-200")}
                 />
-                {errors.eventId && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.eventId && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="descripcion" className="text-sm font-medium text-violet-700">
+                  Descripción <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="descripcion"
+                  value={formData.descripcion}
+                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                  placeholder="Descripción detallada del evento"
+                  className={cn("min-h-24", errors.descripcion ? "border-red-500" : "border-violet-200")}
+                />
+                {errors.descripcion && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="fechaInicio" className="text-sm font-medium text-violet-700">
                   Fecha inicio <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  id="fechaInicio"
+                  type="date"
                   value={formData.fechaInicio}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fechaInicio: e.target.value })
-                    setErrors({ ...errors, fechaInicio: false })
-                  }}
-                  className={errors.fechaInicio ? "border-red-500" : "border-violet-200"}
+                  onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })}
+                  className={cn(errors.fechaInicio ? "border-red-500" : "border-violet-200")}
                 />
-                {errors.fechaInicio && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.fechaInicio && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="fechaFinal" className="text-sm font-medium text-violet-700">
                   Fecha Final <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  id="fechaFinal"
+                  type="date"
                   value={formData.fechaFinal}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fechaFinal: e.target.value })
-                    setErrors({ ...errors, fechaFinal: false })
-                  }}
-                  className={errors.fechaFinal ? "border-red-500" : "border-violet-200"}
+                  onChange={(e) => setFormData({ ...formData, fechaFinal: e.target.value })}
+                  className={cn(errors.fechaFinal ? "border-red-500" : "border-violet-200")}
                 />
-                {errors.fechaFinal && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.fechaFinal && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="fechaDescubrimiento" className="text-sm font-medium text-violet-700">
                   Fecha descubrimiento <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  id="fechaDescubrimiento"
+                  type="date"
                   value={formData.fechaDescubrimiento}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fechaDescubrimiento: e.target.value })
-                    setErrors({ ...errors, fechaDescubrimiento: false })
-                  }}
-                  className={errors.fechaDescubrimiento ? "border-red-500" : "border-violet-200"}
+                  onChange={(e) => setFormData({ ...formData, fechaDescubrimiento: e.target.value })}
+                  className={cn(errors.fechaDescubrimiento ? "border-red-500" : "border-violet-200")}
                 />
-                {errors.fechaDescubrimiento && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.fechaDescubrimiento && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="fechaContabilizacion" className="text-sm font-medium text-violet-700">
                   Fecha contabilización <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  type="datetime-local"
+                  id="fechaContabilizacion"
+                  type="date"
                   value={formData.fechaContabilizacion}
-                  onChange={(e) => {
-                    setFormData({ ...formData, fechaContabilizacion: e.target.value })
-                    setErrors({ ...errors, fechaContabilizacion: false })
-                  }}
-                  className={errors.fechaContabilizacion ? "border-red-500" : "border-violet-200"}
+                  onChange={(e) => setFormData({ ...formData, fechaContabilizacion: e.target.value })}
+                  className={cn(errors.fechaContabilizacion ? "border-red-500" : "border-violet-200")}
                 />
-                {errors.fechaContabilizacion && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.fechaContabilizacion && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
             </div>
 
-            {/* Segunda columna */}
-            <div className="space-y-6">
+            {/* Columna 2 */}
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
-                  Cuantía <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  type="number"
-                  placeholder="Valor de la pérdida"
-                  value={formData.cuantia}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cuantia: e.target.value })
-                    setErrors({ ...errors, cuantia: false })
-                  }}
-                  className={errors.cuantia ? "border-red-500" : "border-violet-200"}
-                />
-                {errors.cuantia && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Cuantía Recuperada</Label>
-                <Input
-                  type="number"
-                  placeholder="Valor recuperado"
-                  value={formData.cuantiaRecuperada}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cuantiaRecuperada: e.target.value })
-                  }}
-                  className="border-violet-200"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Cuantía recuperada por seguros</Label>
-                <Input
-                  type="number"
-                  placeholder="Valor recuperado por seguros"
-                  value={formData.cuantiaRecuperadaSeguros}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cuantiaRecuperadaSeguros: e.target.value })
-                  }}
-                  className="border-violet-200"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
-                  Factor de riesgo <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, factorRiesgo: value })
-                    setErrors({ ...errors, factorRiesgo: false })
-                  }}
-                  value={formData.factorRiesgo}
-                >
-                  <SelectTrigger
-                    className={`p-2 bg-white text-black rounded-md border ${
-                      errors.factorRiesgo ? "border-red-500" : "border-violet-200"
-                    }`}
-                  >
-                    <SelectValue placeholder="Seleccione un factor de riesgo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                    {predefinedFactorRiesgo.map((option) => (
-                      <SelectItem
-                        key={option}
-                        value={option}
-                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                      >
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.factorRiesgo && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Cuenta Contable afectada</Label>
-                <Input
-                  placeholder="Cuenta contable"
-                  value={formData.cuentaContable}
-                  onChange={(e) => {
-                    setFormData({ ...formData, cuentaContable: e.target.value })
-                  }}
-                  className="border-violet-200"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Producto/servicio afectado</Label>
-                <Input
-                  placeholder="Producto o servicio"
-                  value={formData.productoServicio}
-                  onChange={(e) => {
-                    setFormData({ ...formData, productoServicio: e.target.value })
-                  }}
-                  className="border-violet-200"
-                />
-              </div>
-            </div>
-
-            {/* Tercera columna */}
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
+                <Label htmlFor="proceso" className="text-sm font-medium text-violet-700">
                   Proceso <span className="text-red-500">*</span>
                 </Label>
                 <Select
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, proceso: value })
-                    setErrors({ ...errors, proceso: false })
-                  }}
                   value={formData.proceso}
+                  onValueChange={(value) => setFormData({ ...formData, proceso: value })}
                 >
-                  <SelectTrigger
-                    className={`p-2 bg-white text-black rounded-md border ${
-                      errors.proceso ? "border-red-500" : "border-violet-200"
-                    }`}
-                  >
+                  <SelectTrigger className={cn(errors.proceso ? "border-red-500" : "border-violet-200")}>
                     <SelectValue placeholder="Seleccione un proceso" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                    {predefinedProcesos.map((option) => (
-                      <SelectItem
-                        key={option}
-                        value={option}
-                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                      >
-                        {option}
+                  <SelectContent>
+                    {procesos.map((proceso) => (
+                      <SelectItem key={proceso} value={proceso}>
+                        {proceso}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.proceso && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+                {errors.proceso && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Canal</Label>
-                <Select
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, canal: value })
-                  }}
-                  value={formData.canal}
-                >
-                  <SelectTrigger className="p-2 bg-white text-black rounded-md border border-violet-200">
+                <Label htmlFor="canal" className="text-sm font-medium text-violet-700">
+                  Canal
+                </Label>
+                <Select value={formData.canal} onValueChange={(value) => setFormData({ ...formData, canal: value })}>
+                  <SelectTrigger className="border-violet-200">
                     <SelectValue placeholder="Seleccione un canal" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                    {predefinedCanales.map((option) => (
-                      <SelectItem
-                        key={option}
-                        value={option}
-                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                      >
-                        {option}
+                  <SelectContent>
+                    {canales.map((canal) => (
+                      <SelectItem key={canal} value={canal}>
+                        {canal}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -486,119 +409,266 @@ export default function EventManagement() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">Ciudad</Label>
+                <Label htmlFor="ciudad" className="text-sm font-medium text-violet-700">
+                  Ciudad
+                </Label>
+                <Select value={formData.ciudad} onValueChange={(value) => setFormData({ ...formData, ciudad: value })}>
+                  <SelectTrigger className="border-violet-200">
+                    <SelectValue placeholder="Seleccione una ciudad" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ciudades.map((ciudad) => (
+                      <SelectItem key={ciudad} value={ciudad}>
+                        {ciudad}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="responsable" className="text-sm font-medium text-violet-700">
+                  Responsable <span className="text-red-500">*</span>
+                </Label>
                 <Input
-                  placeholder="Ciudad o zona geográfica"
-                  value={formData.ciudad}
-                  onChange={(e) => {
-                    setFormData({ ...formData, ciudad: e.target.value })
-                  }}
+                  id="responsable"
+                  value={formData.responsable}
+                  onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
+                  placeholder="Nombre del responsable"
+                  className={cn(errors.responsable ? "border-red-500" : "border-violet-200")}
+                />
+                {errors.responsable && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="estado" className="text-sm font-medium text-violet-700">
+                  Estado <span className="text-red-500">*</span>
+                </Label>
+                <Select value={formData.estado} onValueChange={(value) => setFormData({ ...formData, estado: value })}>
+                  <SelectTrigger className={cn(errors.estado ? "border-red-500" : "border-violet-200")}>
+                    <SelectValue placeholder="Seleccione un estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {predefinedEstados.map((estado) => (
+                      <SelectItem key={estado} value={estado}>
+                        {estado}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.estado && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
+              </div>
+            </div>
+
+            {/* Columna 3 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cuantia" className="text-sm font-medium text-violet-700">
+                  Cuantía <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="cuantia"
+                  type="number"
+                  value={formData.cuantia}
+                  onChange={(e) => setFormData({ ...formData, cuantia: e.target.value })}
+                  placeholder="Valor en COP"
+                  className={cn(errors.cuantia ? "border-red-500" : "border-violet-200")}
+                />
+                {errors.cuantia && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cuantiaRecuperada" className="text-sm font-medium text-violet-700">
+                  Cuantía Recuperada
+                </Label>
+                <Input
+                  id="cuantiaRecuperada"
+                  type="number"
+                  value={formData.cuantiaRecuperada}
+                  onChange={(e) => setFormData({ ...formData, cuantiaRecuperada: e.target.value })}
+                  placeholder="Valor en COP"
                   className="border-violet-200"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
-                  Responsable <span className="text-red-500">*</span>
+                <Label htmlFor="cuantiaRecuperadaSeguros" className="text-sm font-medium text-violet-700">
+                  Cuantía recuperada por seguros
                 </Label>
                 <Input
-                  placeholder="Persona responsable"
-                  value={formData.responsable}
-                  onChange={(e) => {
-                    setFormData({ ...formData, responsable: e.target.value })
-                    setErrors({ ...errors, responsable: false })
-                  }}
-                  className={errors.responsable ? "border-red-500" : "border-violet-200"}
+                  id="cuantiaRecuperadaSeguros"
+                  type="number"
+                  value={formData.cuantiaRecuperadaSeguros}
+                  onChange={(e) => setFormData({ ...formData, cuantiaRecuperadaSeguros: e.target.value })}
+                  placeholder="Valor en COP"
+                  className="border-violet-200"
                 />
-                {errors.responsable && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-violet-700">
-                  Estado <span className="text-red-500">*</span>
+                <Label htmlFor="factorRiesgo" className="text-sm font-medium text-violet-700">
+                  Factor de riesgo <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="factorRiesgo"
+                  value={formData.factorRiesgo}
+                  onChange={(e) => setFormData({ ...formData, factorRiesgo: e.target.value })}
+                  placeholder="Ingrese el factor de riesgo"
+                  className={cn(errors.factorRiesgo ? "border-red-500" : "border-violet-200")}
+                />
+                {errors.factorRiesgo && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cuentaContable" className="text-sm font-medium text-violet-700">
+                  Cuenta Contable
+                </Label>
+                <Input
+                  id="cuentaContable"
+                  value={formData.cuentaContable}
+                  onChange={(e) => setFormData({ ...formData, cuentaContable: e.target.value })}
+                  placeholder="Número de cuenta"
+                  className="border-violet-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="productoServicio" className="text-sm font-medium text-violet-700">
+                  Servicio
                 </Label>
                 <Select
-                  onValueChange={(value) => {
-                    setFormData({ ...formData, estado: value })
-                    setErrors({ ...errors, estado: false })
-                  }}
-                  value={formData.estado}
+                  value={formData.productoServicio}
+                  onValueChange={(value) => setFormData({ ...formData, productoServicio: value })}
                 >
-                  <SelectTrigger
-                    className={`p-2 bg-white text-black rounded-md border ${
-                      errors.estado ? "border-red-500" : "border-violet-200"
-                    }`}
-                  >
-                    <SelectValue placeholder="Seleccione un estado" />
+                  <SelectTrigger className="border-violet-200">
+                    <SelectValue placeholder="Seleccione un servicio" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                    {predefinedEstados.map((option) => (
-                      <SelectItem
-                        key={option}
-                        value={option}
-                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                      >
-                        {option}
+                  <SelectContent>
+                    {servicios.map((servicio) => (
+                      <SelectItem key={servicio} value={servicio}>
+                        {servicio}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.estado && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
               </div>
             </div>
 
-            {/* Descripción - Ocupa todo el ancho */}
-            <div className="md:col-span-3 space-y-2">
-              <Label className="text-sm font-medium text-violet-700">
-                Descripción <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                placeholder="Descripción detallada del evento"
-                value={formData.descripcion}
-                onChange={(e) => {
-                  setFormData({ ...formData, descripcion: e.target.value })
-                  setErrors({ ...errors, descripcion: false })
-                }}
-                className={`min-h-24 ${errors.descripcion ? "border-red-500" : "border-violet-200"}`}
-              />
-              {errors.descripcion && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
+            {/* Sección de Causas y Consecuencias */}
+            <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              <div className="space-y-4">
+                <Label className="text-sm font-medium text-violet-700">Causas del evento</Label>
+                <div className="space-y-2">
+                  <Select
+                    value={formData.causa1 || ""}
+                    onValueChange={(value) => setFormData({ ...formData, causa1: value })}
+                  >
+                    <SelectTrigger className="border-violet-200">
+                      <SelectValue placeholder="Seleccione causa 1" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {causas.map((causa) => (
+                        <SelectItem key={causa} value={causa}>
+                          {causa}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={formData.causa2 || ""}
+                    onValueChange={(value) => setFormData({ ...formData, causa2: value })}
+                  >
+                    <SelectTrigger className="border-violet-200">
+                      <SelectValue placeholder="Seleccione causa 2" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {causas.map((causa) => (
+                        <SelectItem key={causa} value={causa}>
+                          {causa}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <Label className="text-sm font-medium text-violet-700">Consecuencias del evento</Label>
+                <div className="space-y-2">
+                  <Select
+                    value={formData.consecuencia1 || ""}
+                    onValueChange={(value) => setFormData({ ...formData, consecuencia1: value })}
+                  >
+                    <SelectTrigger className="border-violet-200">
+                      <SelectValue placeholder="Seleccione consecuencia 1" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {consecuencias.map((consecuencia) => (
+                        <SelectItem key={consecuencia} value={consecuencia}>
+                          {consecuencia}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={formData.consecuencia2 || ""}
+                    onValueChange={(value) => setFormData({ ...formData, consecuencia2: value })}
+                  >
+                    <SelectTrigger className="border-violet-200">
+                      <SelectValue placeholder="Seleccione consecuencia 2" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {consecuencias.map((consecuencia) => (
+                        <SelectItem key={consecuencia} value={consecuencia}>
+                          {consecuencia}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
-            {/* Botones de acción */}
-            <div className="md:col-span-3 flex gap-2">
-              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
+            {/* Botones */}
+            <div className="md:col-span-3 flex flex-wrap gap-2">
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white flex items-center gap-1">
+                <Save className="w-4 h-4" />
                 {editingId ? "Actualizar Riesgo" : "Registrar Riesgo"}
               </Button>
+
               {editingId && (
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={resetForm}
-                  className="text-violet-600 border-violet-600"
+                  onClick={handleCancel}
+                  className="border-orange-500 text-orange-500 hover:bg-orange-50 flex items-center gap-1"
                 >
+                  <X className="w-4 h-4" />
                   Cancelar
                 </Button>
               )}
+
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => {
-                  setIsLoadingModal(true)
-                  setShowSuggestionModal(true)
-                  setTimeout(() => setIsLoadingModal(false), 1500)
-                }}
-                className="ml-auto text-emerald-600 border-emerald-600 hover:bg-emerald-50"
+                onClick={() => openSuggestionsModal({
+                  field1: "Valor del campo 1",
+                  field2: "Valor del campo 2",
+                  field3: "Valor del campo 3",
+                  field4: "Valor del campo 4",
+                  field5: "Valor del campo 5"
+                })}
+                className="bg-violet-900 border-violet-500 text-white hover:bg-orange-500 flex items-center gap-1 ml-auto"
               >
-                <Lightbulb className="w-4 h-4 mr-2" />
+                <Lightbulb className="w-4 h-4" />
                 Sugerir Control
               </Button>
             </div>
           </form>
         </Card>
 
-        <Card className="p-6 shadow-lg border-t-4 border-orange-500">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold text-orange-900">Listado de Riesgos</h2>
+        <Card className="p-4 md:p-6 shadow-lg border-t-4 border-orange-500">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+            <h2 className="text-xl md:text-2xl font-semibold text-orange-900">Listado de Riesgos</h2>
             <ExportButtons data={eventEntries} fileName="listado-riesgos" />
           </div>
           <div className="overflow-x-auto">
@@ -616,58 +686,76 @@ export default function EventManagement() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {eventEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{entry.eventId}</TableCell>
-                    <TableCell>{new Date(entry.fechaInicio).toLocaleString("es-CO")}</TableCell>
-                    <TableCell>{formatCurrency(entry.cuantia)}</TableCell>
-                    <TableCell>{entry.factorRiesgo}</TableCell>
-                    <TableCell>{entry.proceso}</TableCell>
-                    <TableCell>{entry.responsable}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          entry.estado === "Controlado"
-                            ? "bg-green-100 text-green-800"
-                            : entry.estado === "En Proceso"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {entry.estado}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEdit(entry)}
-                          className="text-violet-600 border-violet-600"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleDelete(entry.id)}
-                          className="text-orange-600 border-orange-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                {eventEntries.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                      No hay registros disponibles
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  eventEntries.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell>{entry.eventId}</TableCell>
+                      <TableCell>{new Date(entry.fechaInicio).toLocaleDateString("es-CO")}</TableCell>
+                      <TableCell>{formatCurrency(entry.cuantia)}</TableCell>
+                      <TableCell>{entry.factorRiesgo}</TableCell>
+                      <TableCell>{entry.proceso}</TableCell>
+                      <TableCell>{entry.responsable}</TableCell>
+                      <TableCell>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            entry.estado === "Controlado"
+                              ? "bg-green-100 text-green-800"
+                              : entry.estado === "En Proceso"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {entry.estado}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleEdit(entry)}
+                            className="text-violet-600 border-violet-600 h-8 w-8 p-0"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                            <span className="sr-only">Editar</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDelete(entry.id)}
+                            className="text-orange-600 border-orange-600 h-8 w-8 p-0"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="sr-only">Eliminar</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
         </Card>
-          <ControlSuggestionModal
-            open={showSuggestionModal}
-            loading={isLoadingModal}
-            onClose={() => setShowSuggestionModal(false)}
-          />
+
+        {showSuggestionModal && (
+        <ControlSuggestionModal
+          open={modalOpen}
+          onClose={closeSuggestionsModal} // Usar la función de cierre personalizada
+          loading={false}
+          field1={riskData.field1}
+          field2={riskData.field2}
+          field3={riskData.field3}
+          field4={riskData.field4}
+          field5={riskData.field5}
+        />
+        )}
       </div>
     </div>
   )
