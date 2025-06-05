@@ -93,7 +93,7 @@ export default function Personal() {
         title: "Error de validación",
         description: "Por favor complete todos los campos obligatorios correctamente.",
       })
-      return
+      return;
     }
     try {
       if (editingId) {
@@ -141,7 +141,6 @@ export default function Personal() {
           correo: response.data.email,
           notifica: response.data.notify,
         }
-        console.log("nuevo personal ", newEmployee)
         setEmployees([...employees, newEmployee])
         toast({
           title: "Empleado registrado",

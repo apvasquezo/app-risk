@@ -1,143 +1,265 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import { Edit3, Trash2 } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import type React from "react"
+
+import { useState, useEffect, useMemo, useCallback } from "react"
+import { Edit3, Trash2 } from "lucide-react"
+import { Card } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
+  transformRiskFactors,
+  transformProbability,
+  transformImpact,
+  transformTypeRisk,
+  transformEvent,
+} from "@/lib/transformers"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import api from "@/lib/axios"
 
-interface RiskEntry {
-  id: string;
-  t_riesgo: string;
-  factor: string;
-  description: string;
-  probabilidad: string;
-  impacto: string;
+interface RiskFactor {
+  id: string
+  type_id: string
+  description: string
 }
 
-const predefinedTRiesgo = ["Operacional", "Financiero", "Legal", "Reputacional"];
-const predefinedFactor = ["Fraude", "Errores Humanos", "Fallas Técnicas"];
-const predefinedProbabilidad = ["Baja", "Media", "Alta"];
-const predefinedImpacto = ["Bajo", "Moderado", "Alto"];
+interface RiskType {
+  id_risk: string
+  category_id: string
+  description: string
+}
+
+interface Prob {
+  level: number
+  description: string
+  definition: string
+  criteria_por: number
+}
+
+interface Impact {
+  level: number
+  description: string
+  definition: string
+  criteria_smlv: number
+}
+interface RiskEntry {
+  id: string
+  t_riesgo: string
+  factor_id: string
+  description: string
+  probabilidad: string
+  impacto: string
+}
 
 export default function RiskManagement() {
-  const { toast } = useToast();
+  const { toast } = useToast()
   const [formData, setFormData] = useState({
     t_riesgo: "",
-    factor: "",
+    factor_id: "",
     description: "",
     probabilidad: "",
     impacto: "",
-  });
-  const [editingId, setEditingId] = useState<string | null>(null);
+  })
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [errors, setErrors] = useState({
     t_riesgo: false,
-    factor: false,
+    factor_id: false,
     description: false,
     probabilidad: false,
     impacto: false,
-  });
+  })
 
-  const [riskEntries, setRiskEntries] = useState<RiskEntry[]>([
-    {
-      id: "1",
-      t_riesgo: "Operacional",
-      factor: "Fraude",
-      description: "Acceso no autorizado a sistemas",
-      probabilidad: "Alta",
-      impacto: "Alto",
-    },
-    {
-      id: "2",
-      t_riesgo: "Financiero",
-      factor: "Errores Humanos",
-      description: "Errores en la conciliación bancaria",
-      probabilidad: "Media",
-      impacto: "Moderado",
-    },
-    {
-      id: "3",
-      t_riesgo: "Legal",
-      factor: "Fallas Técnicas",
-      description: "Incumplimiento en regulaciones",
-      probabilidad: "Baja",
-      impacto: "Bajo",
-    },
-  ]);
+  const [riskEntries, setRiskEntries] = useState<RiskEntry[]>([])
+  const [riskTypes, setRiskTypes] = useState<RiskType[]>([])
+  const [riskFactors, setRiskFactors] = useState<RiskFactor[]>([])
+  const [probList, setProbList] = useState<Prob[]>([])
+  const [impactList, setImpactList] = useState<Impact[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const validateForm = () => {
+  useEffect(() => {
+    const fetchEvent = async () => {
+      setIsLoading(true)
+      try {
+        
+        const responseTypes = await api.get("/risk-types")
+        setRiskTypes(transformTypeRisk(responseTypes.data))
+
+        const responseFactors = await api.get("/risk-factors")
+        setRiskFactors(transformRiskFactors(responseFactors.data))
+
+        const responseProb = await api.get("/probabilities")
+        setProbList(transformProbability(responseProb.data))
+
+        const responseImp = await api.get("/impacts")
+        setImpactList(transformImpact(responseImp.data))
+
+        const responseEvent = await api.get("/events")
+        setRiskEntries(transformEvent(responseEvent.data))
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error al cargar datos",
+          description: "No se pudo obtener los listados.",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchEvent()
+  }, [toast])
+
+  // Helper functions to get descriptions from IDs
+  const getRiskTypeDescription = (id: string) => {
+    const riskType = riskTypes.find((type) => type.id_risk === id)
+    return riskType ? riskType.description : id
+  }
+
+  const getRiskFactorDescription = (id: string) => {
+    const factor = riskFactors.find((factor) => factor.id === id)
+    return factor ? factor.description : id
+  }
+
+  const getProbabilityDescription = (level: string) => {
+    const prob = probList.find((p) => p.level.toString() === level)
+    return prob ? prob.description : level
+  }
+
+  const getImpactDescription = (level: string) => {
+    const impact = impactList.find((i) => i.level.toString() === level)
+    return impact ? impact.description : level
+  }
+
+  const validateForm = useCallback(() => {
     const newErrors = {
       t_riesgo: !formData.t_riesgo.trim(),
-      factor: !formData.factor.trim(),
+      factor_id: !formData.factor_id.trim(),
       description: !formData.description.trim(),
       probabilidad: !formData.probabilidad.trim(),
       impacto: !formData.impacto.trim(),
-    };
-    setErrors(newErrors);
-    return Object.values(newErrors).every((error) => !error);
-  };
-
-  const resetForm = () => {
-    setFormData({ t_riesgo: "", factor: "", description: "", probabilidad: "", impacto: "" });
-    setEditingId(null);
-    setErrors({ t_riesgo: false, factor: false, description: false, probabilidad: false, impacto: false });
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast({
-        variant: "destructive",
-        title: "Error de validación",
-        description: "Todos los campos son obligatorios.",
-      });
-      return;
     }
+    setErrors(newErrors)
+    return !Object.values(newErrors).some(Boolean)
+  }, [formData])
 
-    if (editingId) {
-      setRiskEntries(
-        riskEntries.map((entry) =>
-          entry.id === editingId ? { ...formData, id: editingId } : entry
-        )
-      );
-      toast({
-        title: "Registro actualizado",
-        description: "El registro de riesgo ha sido actualizado exitosamente.",
-      });
-    } else {
-      const newEntry = { ...formData, id: Date.now().toString() };
-      setRiskEntries([...riskEntries, newEntry]);
-      toast({
-        title: "Registro agregado",
-        description: "El nuevo registro de riesgo ha sido agregado exitosamente.",
-      });
-    }
-    resetForm();
-  };
+  const resetForm = useCallback(() => {
+    setFormData({
+      t_riesgo: "",
+      factor_id: "",
+      description: "",
+      probabilidad: "",
+      impacto: "",
+    })
+    setEditingId(null)
+    setErrors({
+      t_riesgo: false,
+      factor_id: false,
+      description: false,
+      probabilidad: false,
+      impacto: false,
+    })
+  }, [])
 
-  const handleEdit = (entry: RiskEntry) => {
-    setFormData(entry);
-    setEditingId(entry.id);
-  };
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault()
+      if (!validateForm()) {
+        console.log("los datos del formulario ", formData)
+        toast({
+          variant: "destructive",
+          title: "Error de validación",
+          description: "Todos los campos son obligatorios.",
+        })
+        return
+      }
 
-  const handleDelete = (id: string) => {
-    setRiskEntries(riskEntries.filter((entry) => entry.id !== id));
-    toast({
-      title: "Registro eliminado",
-      description: "El registro ha sido eliminado exitosamente.",
-    });
-    if (editingId === id) resetForm();
-  };
+      setIsLoading(true)
+      try {
+        const payload = {
+          risk_type_id: formData.t_riesgo,
+          factor_id: formData.factor_id,
+          description: formData.description,
+          probability_id: formData.probabilidad,
+          impact_id: formData.impacto,
+        }
+
+        if (editingId) {
+          await api.put(`/events/${editingId}`, payload)
+          setRiskEntries((prev) =>
+            prev.map((entry) => (entry.id === editingId ? { ...formData, id: editingId } : entry)),
+          )
+          toast({
+            title: "Evento actualizado",
+            description: "El registro de evento ha sido actualizado exitosamente.",
+          })
+        } else {
+          const response = await api.post("/events", payload)
+          const newEntry = {
+            id: response.data.id_event,
+            t_riesgo: response.data.risk_type_id,
+            factor_id: response.data.factor_id,
+            description: response.data.description,
+            probabilidad: response.data.probability_id,
+            impacto: response.data.impact_id,
+          }
+          setRiskEntries((prev) => [...prev, newEntry])
+          toast({
+            title: "Evento registrado",
+            description: "El nuevo evento ha sido registrado exitosamente.",
+          })
+        }
+        resetForm()
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error al procesar la solicitud.",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [formData, editingId, validateForm, resetForm, toast],
+  )
+
+  const handleEdit = useCallback((entry: RiskEntry) => {
+    setFormData(entry)
+    setEditingId(entry.id)
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }, [])
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este evento?")
+      if (!confirmDelete) return
+
+      setIsLoading(true)
+      try {
+        await api.delete(`/events/${id}`)
+        setRiskEntries((prev) => prev.filter((entry) => entry.id !== id))
+        if (editingId === id) {
+          resetForm()
+        }
+        toast({
+          title: "Registro eliminado",
+          description: "El registro ha sido eliminado exitosamente.",
+        })
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error al eliminar el evento.",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [editingId, resetForm, toast],
+  )
 
   return (
     <div className="min-h-screen p-8">
@@ -147,10 +269,10 @@ export default function RiskManagement() {
         <Card className="p-6 shadow-lg border-t-4 border-violet-500">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              { label: "Tipo de Riesgo", key: "t_riesgo", options: predefinedTRiesgo },
-              { label: "Factor", key: "factor", options: predefinedFactor },
-              { label: "Probabilidad", key: "probabilidad", options: predefinedProbabilidad },
-              { label: "Impacto", key: "impacto", options: predefinedImpacto },
+              { label: "Tipo de Riesgo", key: "t_riesgo", options: riskTypes },
+              { label: "Factor", key: "factor_id", options: riskFactors },
+              { label: "Probabilidad", key: "probabilidad", options: probList },
+              { label: "Impacto", key: "impacto", options: impactList },
             ].map(({ label, key, options }) => (
               <div key={key} className="space-y-2">
                 <label className="text-sm font-medium text-violet-700">
@@ -158,8 +280,8 @@ export default function RiskManagement() {
                 </label>
                 <Select
                   onValueChange={(value) => {
-                    setFormData({ ...formData, [key]: value });
-                    setErrors({ ...errors, [key]: false });
+                    setFormData({ ...formData, [key]: value })
+                    setErrors({ ...errors, [key]: false })
                   }}
                   value={formData[key as keyof typeof formData] || ""}
                 >
@@ -171,15 +293,46 @@ export default function RiskManagement() {
                     <SelectValue placeholder={`Seleccione un ${label.toLowerCase()}`} />
                   </SelectTrigger>
                   <SelectContent className="bg-white border border-gray-300 shadow-md rounded-lg">
-                    {options.map((option) => (
-                      <SelectItem
-                        key={option}
-                        value={option}
-                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
-                      >
-                        {option}
-                      </SelectItem>
-                    ))}
+                    {key === "t_riesgo" &&
+                      riskTypes.map((option) => (
+                        <SelectItem
+                          key={option.id_risk}
+                          value={option.id_risk}
+                          className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                        >
+                          {option.description}
+                        </SelectItem>
+                      ))}
+                    {key === "factor_id" &&
+                      riskFactors.map((option) => (
+                        <SelectItem
+                          key={option.id}
+                          value={option.id}
+                          className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                        >
+                          {option.description}
+                        </SelectItem>
+                      ))}
+                    {key === "probabilidad" &&
+                      probList.map((option) => (
+                        <SelectItem
+                          key={option.level}
+                          value={option.level.toString()}
+                          className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                        >
+                          {option.description}
+                        </SelectItem>
+                      ))}
+                    {key === "impacto" &&
+                      impactList.map((option) => (
+                        <SelectItem
+                          key={option.level}
+                          value={option.level.toString()}
+                          className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                        >
+                          {option.description}
+                        </SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
                 {errors[key as keyof typeof errors] && (
@@ -196,18 +349,17 @@ export default function RiskManagement() {
                 placeholder="Ingrese la descripción"
                 value={formData.description}
                 onChange={(e) => {
-                  setFormData({ ...formData, description: e.target.value });
-                  setErrors({ ...errors, description: false });
+                  setFormData({ ...formData, description: e.target.value })
+                  setErrors({ ...errors, description: false })
                 }}
                 className={errors.description ? "border-red-500" : "border-violet-200"}
+                disabled={isLoading}
               />
-              {errors.description && (
-                <p className="text-sm text-red-500">Este campo es obligatorio</p>
-              )}
+              {errors.description && <p className="text-sm text-red-500">Este campo es obligatorio</p>}
             </div>
             <div className="flex gap-2">
-                <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white">
-                {editingId ? "Actualizar Evento" : "Registrar Evento"}
+              <Button type="submit" className="bg-orange-500 hover:bg-violet-900 text-white" disabled={isLoading}>
+              {isLoading ? "Procesando..." : editingId ? "Actualizar Evento" : "Registrar Evento"}
               </Button>
               {editingId && (
                 <Button
@@ -215,11 +367,12 @@ export default function RiskManagement() {
                   variant="outline"
                   onClick={resetForm}
                   className="text-violet-600 border-violet-600"
+                  disabled={isLoading}
                 >
                   Cancelar
-                </Button>  
-            )}
-            </div> 
+                </Button>
+              )}
+            </div>
           </form>
         </Card>
 
@@ -239,11 +392,11 @@ export default function RiskManagement() {
             <TableBody>
               {riskEntries.map((entry) => (
                 <TableRow key={entry.id}>
-                  <TableCell>{entry.t_riesgo}</TableCell>
-                  <TableCell>{entry.factor}</TableCell>
+                  <TableCell>{getRiskTypeDescription(entry.t_riesgo)}</TableCell>
+                  <TableCell>{getRiskFactorDescription(entry.factor_id)}</TableCell>
                   <TableCell>{entry.description}</TableCell>
-                  <TableCell>{entry.probabilidad}</TableCell>
-                  <TableCell>{entry.impacto}</TableCell>
+                  <TableCell>{getProbabilityDescription(entry.probabilidad)}</TableCell>
+                  <TableCell>{getImpactDescription(entry.impacto)}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
@@ -251,6 +404,7 @@ export default function RiskManagement() {
                         variant="outline"
                         onClick={() => handleEdit(entry)}
                         className="text-violet-600 border-violet-600"
+                        disabled={isLoading}
                       >
                         <Edit3 className="w-4 h-4" />
                       </Button>
@@ -259,6 +413,7 @@ export default function RiskManagement() {
                         variant="outline"
                         onClick={() => handleDelete(entry.id)}
                         className="text-orange-600 border-orange-600"
+                        disabled={isLoading}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -271,5 +426,5 @@ export default function RiskManagement() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -1,4 +1,3 @@
-
 export interface Channel {
   id_channel: number;
   description: string;
@@ -268,3 +267,23 @@ export const transformPlans = (data: ActionPlan[]) => {
     estado: item.state,
   }));
 };
+
+export interface Event {
+  id_event: number
+  risk_type_id: number
+  factor_id: number
+  description: string
+  probability_id: number
+  impact_id: number
+}
+
+export const transformEvent = ( data: Event[]) => {
+  return data.map(item =>({
+    id: item.id_event.toString(),
+    t_riesgo: item.risk_type_id.toString(),
+    factor_id: item.factor_id.toString(),
+    description: item.description,
+    probabilidad: item.probability_id.toString(),
+    impacto: item.impact_id.toString(),
+  }))
+}
