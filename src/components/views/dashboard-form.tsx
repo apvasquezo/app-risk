@@ -76,8 +76,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-80">
               <PieChart
-              labels={["Pendiente", "En progreso", "Completado", "Cancelado"]}
-              data={[10, 4, 6, 8]}
+              labels={["planStatusLabels"]}
+              data={[planStatusdata]}
             />
           </CardContent>
         </Card>
