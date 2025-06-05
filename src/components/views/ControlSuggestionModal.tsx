@@ -1,212 +1,203 @@
-"use client"
-import { useEffect, useState } from "react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { AlertCircle } from "lucide-react"
+import { Fragment, useState } from 'react'
+import { Dialog, Transition, Tab } from '@headlessui/react'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
-interface Props {
-  open: boolean
+interface RiskControlModalProps {
+  isOpen: boolean
   onClose: () => void
-  loading: boolean
-  field1: string  // Tipo de Riesgo
-  field2: string  // Factor de Riesgo
-  field3: string  // Proceso
-  field4: string  // Canal
-  field5: string  // Evento de Riesgo
+  riskData: {
+    field1: string
+    field2: string
+    field3: string
+    field4: string
+    field5: string
+  }
 }
 
-interface ControlSuggestions {
-  preventivo: string
-  detectivo: string
-  correctivo: string
-}
+export default function RiskControlModal({ isOpen, onClose, riskData }: RiskControlModalProps) {
+  const [controls, setControls] = useState<{
+    preventivo: string
+    detectivo: string
+    correctivo: string
+  } | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-export default function ControlSuggestionModal({
-  open,
-  onClose,
-  loading,
-  field1,
-  field2,
-  field3,
-  field4,
-  field5
-}: Props) {
-  const [suggestions, setSuggestions] = useState<ControlSuggestions | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchAISuggestions = async () => {
-    if (!field1 || !field2 || !field3 || !field4 || !field5) {
-      setError("Faltan datos del riesgo para generar sugerencias")
-      return
-    }
-
-    setIsLoading(true)
-    setError(null)
-
+  const fetchControls = async () => {
+    setLoading(true)
+    setError('')
     try {
-      // Llamada a tu API route de Next.js en lugar de directamente a OpenAI
-      const response = await fetch('/api/suggestions', {
+      const response = await fetch('/api/risk-controls', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          field1,
-          field2,
-          field3,
-          field4,
-          field5
-        }),
+        body: JSON.stringify(riskData),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `Error HTTP: ${response.status}`)
+        throw new Error('Error al obtener controles')
       }
 
       const data = await response.json()
-      const content = data.choices[0]?.message?.content
-
-      if (!content) {
-        throw new Error('No se recibió respuesta de la API')
-      }
-
-      // Intentar parsear la respuesta JSON
-      try {
-        const parsedSuggestions = JSON.parse(content.trim())
-        setSuggestions(parsedSuggestions)
-      } catch (parseError) {
-        // Si no es JSON válido, crear estructura manual
-        console.warn('Respuesta no es JSON válido, procesando manualmente:', content)
-        
-        // Procesamiento básico si la respuesta no es JSON
-        const lines = content.split('\n').filter((line: string) => line.trim())
-        const fallbackSuggestions = {
-          preventivo: lines.find((line: string) => line.toLowerCase().includes('preventivo'))?.replace(/^\d+\.?\s*\*?\*?.*?:?\*?\*?\s*/i, '') || 'Implementar medidas preventivas',
-          detectivo: lines.find((line: string) => line.toLowerCase().includes('detectivo'))?.replace(/^\d+\.?\s*\*?\*?.*?:?\*?\*?\s*/i, '') || 'Establecer sistemas de detección',
-          correctivo: lines.find((line: string) => line.toLowerCase().includes('correctivo'))?.replace(/^\d+\.?\s*\*?\*?.*?:?\*?\*?\s*/i, '') || 'Definir acciones correctivas'
-        }
-        setSuggestions(fallbackSuggestions)
-      }
-    } catch (error) {
-      console.error('Error al obtener sugerencias:', error)
-      setError(error instanceof Error ? error.message : 'Error desconocido al generar sugerencias')
+      setControls(JSON.parse(data))
+    } catch (err) {
+      setError('Error al generar los controles')
+      console.error(err)
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    if (open && field1 && field2 && field3 && field4 && field5) {
-      fetchAISuggestions()
-    }
-  }, [open, field1, field2, field3, field4, field5])
+  const handleDownload = () => {
+    if (!controls) return
 
-  const handleClose = () => {
-    setSuggestions(null)
-    setError(null)
-    onClose()
+    const content = `Controles Sugeridos:
+Preventivo: ${controls.preventivo}
+Detectivo: ${controls.detectivo}
+Correctivo: ${controls.correctivo}`
+
+    const blob = new Blob([content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'controles-sugeridos.txt'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[650px] border-t-4 border-violet-500 shadow-lg">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-violet-900">
-            Sugerencia de Controles
-          </DialogTitle>
-          <DialogDescription>
-            Controles recomendados basados en la información proporcionada.
-          </DialogDescription>
-        </DialogHeader>
+    <Transition.Root show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
+        >
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+        </Transition.Child>
 
-        <div className="max-h-[60vh] overflow-y-auto">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-700"></div>
-              <p className="mt-4 text-violet-700">Generando sugerencias...</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-              <p className="text-red-600 mb-4">{error}</p>
-              <Button 
-                onClick={fetchAISuggestions} 
-                variant="outline"
-                className="text-violet-600 border-violet-600"
-              >
-                Reintentar
-              </Button>
-            </div>
-          ) : suggestions ? (
-            <Tabs defaultValue="preventivos" className="w-full">
-              <TabsList className="grid grid-cols-3 mb-4">
-                <TabsTrigger value="preventivos">Preventivos</TabsTrigger>
-                <TabsTrigger value="detectivos">Detectivos</TabsTrigger>
-                <TabsTrigger value="correctivos">Correctivos</TabsTrigger>
-              </TabsList>
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enterTo="opacity-100 translate-y-0 sm:scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                <div className="absolute right-0 top-0 pr-4 pt-4">
+                  <button
+                    type="button"
+                    className="rounded-md bg-white text-gray-400 hover:text-gray-500"
+                    onClick={onClose}
+                  >
+                    <span className="sr-only">Cerrar</span>
+                    <XMarkIcon className="h-6 w-6" aria-hidden="true" />
+                  </button>
+                </div>
 
-              <TabsContent value="preventivos" className="border border-violet-800 p-4 rounded-md bg-fuchsia-100">
-                <h3 className="font-semibold text-lg mb-2 flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-violet-900" />
-                  Control Preventivo
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {suggestions.preventivo}
-                </p>
-              </TabsContent>
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
+                    <Dialog.Title as="h3" className="text-lg font-semibold leading-6 text-gray-900">
+                      Controles Sugeridos
+                    </Dialog.Title>
 
-              <TabsContent value="detectivos" className="border border-violet-800 p-4 rounded-md bg-fuchsia-100">
-                <h3 className="font-semibold text-lg mb-2 flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-violet-900" />
-                  Control Detectivo
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {suggestions.detectivo}
-                </p>
-              </TabsContent>
+                    {!controls && !loading && (
+                      <button
+                        onClick={fetchControls}
+                        className="mt-4 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                      >
+                        Generar Controles
+                      </button>
+                    )}
 
-              <TabsContent value="correctivos" className="border border-violet-800 p-4 rounded-md bg-fuchsia-100">
-                <h3 className="font-semibold text-lg mb-2 flex items-center">
-                  <AlertCircle className="w-5 h-5 mr-2 text-violet-900" />
-                  Control Correctivo
-                </h3>
-                <p className="text-gray-700 leading-relaxed">
-                  {suggestions.correctivo}
-                </p>
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8">
-              <AlertCircle className="w-12 h-12 text-gray-400 mb-4" />
-              <p className="text-gray-500">No hay sugerencias disponibles</p>
-            </div>
-          )}
+                    {loading && (
+                      <div className="mt-4 text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                        <p className="mt-2 text-sm text-gray-500">Generando controles...</p>
+                      </div>
+                    )}
+
+                    {error && (
+                      <p className="mt-4 text-sm text-red-600">{error}</p>
+                    )}
+
+                    {controls && (
+                      <>
+                        <Tab.Group>
+                          <Tab.List className="mt-4 flex space-x-1 rounded-xl bg-indigo-100 p-1">
+                            <Tab
+                              className={({ selected }) =>
+                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5
+                                ${selected
+                                  ? 'bg-white text-indigo-700 shadow'
+                                  : 'text-indigo-500 hover:bg-white/[0.12] hover:text-indigo-600'
+                                }`
+                              }
+                            >
+                              Preventivo
+                            </Tab>
+                            <Tab
+                              className={({ selected }) =>
+                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5
+                                ${selected
+                                  ? 'bg-white text-indigo-700 shadow'
+                                  : 'text-indigo-500 hover:bg-white/[0.12] hover:text-indigo-600'
+                                }`
+                              }
+                            >
+                              Detectivo
+                            </Tab>
+                            <Tab
+                              className={({ selected }) =>
+                                `w-full rounded-lg py-2.5 text-sm font-medium leading-5
+                                ${selected
+                                  ? 'bg-white text-indigo-700 shadow'
+                                  : 'text-indigo-500 hover:bg-white/[0.12] hover:text-indigo-600'
+                                }`
+                              }
+                            >
+                              Correctivo
+                            </Tab>
+                          </Tab.List>
+                          <Tab.Panels className="mt-4">
+                            <Tab.Panel className="rounded-xl bg-white p-3">
+                              <p className="text-gray-700">{controls.preventivo}</p>
+                            </Tab.Panel>
+                            <Tab.Panel className="rounded-xl bg-white p-3">
+                              <p className="text-gray-700">{controls.detectivo}</p>
+                            </Tab.Panel>
+                            <Tab.Panel className="rounded-xl bg-white p-3">
+                              <p className="text-gray-700">{controls.correctivo}</p>
+                            </Tab.Panel>
+                          </Tab.Panels>
+                        </Tab.Group>
+
+                        <button
+                          onClick={handleDownload}
+                          className="mt-4 w-full rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                        >
+                          Descargar Controles
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
         </div>
-
-        <DialogFooter>
-          <Button 
-            onClick={handleClose} 
-            className="bg-orange-500 hover:bg-violet-900 text-white"
-          >
-            Cerrar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </Dialog>
+    </Transition.Root>
   )
 }
