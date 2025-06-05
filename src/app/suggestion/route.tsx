@@ -46,7 +46,7 @@ export async function POST(request: Request) {
           temperature: 0.7,
         }),
       })
-  
+      console.log("KEY:", process.env.API_KEY_OPENAI)
       if (!response.ok) {
         const errorData = await response.json()
         return Response.json(
