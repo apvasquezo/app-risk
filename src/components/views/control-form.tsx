@@ -310,7 +310,7 @@ export default function Controls() {
               </label>
               <Input
                 required
-                placeholder="Ingrese el área o persona responsable"
+                placeholder="Ingrese ID persona responsable"
                 value={formData.responsable}
                 onChange={(e) => {
                   setFormData({ ...formData, responsable: e.target.value })

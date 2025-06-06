@@ -29,7 +29,7 @@ const sidebarItems = [
   { title: "Controles", icon: Cog, href: "/admin/control" },
   { title: "Eventos", icon: AlertCircle, href: "/admin/event" },
   { title: "Planes de Acción", icon: FileBarChart, href: "/admin/plans" },
-  { title: "Evaluar Control", icon: NotebookPen, href: "/admin/eval" },
+  { title: "Asignar o Evaluar Control", icon: NotebookPen, href: "/admin/eval" },
   { title: "Matriz de Riesgo", icon: Grid2x2Check, href: "/admin/matrix" },
   { title: "Dashboard", icon: BarChart2, href: "/admin" },
 ];

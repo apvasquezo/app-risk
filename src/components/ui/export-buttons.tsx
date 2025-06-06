@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileText } from "lucide-react";
 import { exportToExcel, exportToPDF, prepareDataForExport } from "@/lib/export-utils";
 
-// ✅ Tipado seguro para arreglos de objetos
 interface ExportButtonsProps {
   data: Record<string, unknown>[];
   fileName?: string;

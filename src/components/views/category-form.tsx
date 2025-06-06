@@ -6,6 +6,7 @@ import { Pencil, UserPlus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useApiError } from "@/hooks/useErrorHandler";
 import {
   Table,
   TableBody,
@@ -33,6 +34,7 @@ export default function RiskCategories() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [errors, setErrors] = useState({ description: false });
   const [categories, setCategories] = useState<RiskCategory[]>([]);
+  const { handleError } = useApiError();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -108,11 +110,16 @@ export default function RiskCategories() {
         });
       }
       resetForm();
-    } catch {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Ocurrió un error al procesar la solicitud.",
+    } catch (error) {
+      handleError(error, {
+        customMessages: {
+          409: "Ya existe una categoría con ese nombre. Usa un nombre diferente.",
+          400: "El nombre de la categoría debe tener al menos 3 caracteres.",
+          422: "Los datos ingresados no son válidos. Revisa el formulario."
+        },
+        onError: (apiError) => {
+          console.log('Error específico en categorías:', apiError);
+       }
       });
     }
   };

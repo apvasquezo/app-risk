@@ -25,8 +25,6 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("el usuario ", username)
-    console.log("la contraseña ", password)
     try {
       const response = await axios.post("http://localhost:8000/auth/login", {
         username,
@@ -37,10 +35,8 @@ export default function LoginForm() {
       localStorage.setItem("token", access_token);
       localStorage.setItem("role",role)
       setUser({ role });
-      console.log("este es mi rol", role)
       switch (role) {
         case "super":
-          console.log("Redirigiendo a", role);
           window.location.href = "/super";
           break;
         case "admin":
