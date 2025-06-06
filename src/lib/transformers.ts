@@ -287,3 +287,86 @@ export const transformEvent = ( data: Event[]) => {
     impacto: item.impact_id.toString(),
   }))
 }
+
+export interface Event_log {
+  id_eventlog: number
+  event_id: number
+  description: string
+  start_date: string
+  end_date: string
+  discovery_date: string
+  accounting_date: string
+  amount: number
+  recovered_amount: number
+  insurance_recovery: number
+  acount: number
+  product_id: number
+  process_id: number
+  channel_id: number
+  city: string
+  responsible_id: string
+  status: string
+  cause1_id: number
+  cause2_id: number
+  conse1_id: number
+  conse2_id: number
+}
+
+export const transformEventLog = (data: Event_log[]) => {
+  return data.map(item => ({
+    id: item.id_eventlog?.toString() ?? "",
+    eventId: item.event_id?.toString() ?? "",
+    fechaInicio: item.start_date ?? "",
+    fechaFinal: item.end_date ?? "",
+    fechaDescubrimiento: item.discovery_date ?? "",
+    fechaContabilizacion: item.accounting_date ?? "",
+    cuantia: item.amount?.toString() ?? "",
+    cuantiaRecuperada: item.recovered_amount?.toString() ?? "",
+    cuantiaRecuperadaSeguros: item.insurance_recovery?.toString() ?? "",
+    factorRiesgo: "",
+    cuentaContable: item.acount?.toString() ?? "",
+    productoServicio: item.product_id?.toString() ?? "",
+    proceso: item.process_id?.toString() ?? "",
+    descripcion: item.description ?? "",
+    canal: item.channel_id?.toString() ?? "",
+    ciudad: item.city ?? "",
+    responsable: item.responsible_id ?? "",
+    estado: item.status ?? "",
+    causa1: item.cause1_id?.toString() ?? "",
+    causa2: item.cause2_id?.toString() ?? "",
+    consecuencia1: item.conse1_id?.toString() ?? "",
+    consecuencia2: item.conse2_id?.toString() ?? "",
+  }));
+};
+
+
+export interface Services {
+  id_product: number
+  description: string
+}
+
+export const transformService = (data: Services[]) => {
+  return data.map((item) => ({
+    id: item.id_product.toString(),
+    name: item.description,
+  }));
+};
+
+export interface EvalControl {
+  id_evaluation: number
+  event_id: number 
+  control_id: number
+  eval_date: string
+  n_probability: number
+  n_impact: number
+  personal_id: string
+  next_date: string
+  description: string
+  state:string   
+}
+
+export const transformEvaluation =(data: EvalControl[]) => {
+  return data.map((item) => {
+    
+  })
+}

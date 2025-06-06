@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { Edit3, Trash2, Lightbulb, Save, X } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -13,8 +13,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import { Label } from "@/components/ui/label"
 import { ExportButtons } from "@/components/ui/export-buttons"
-import ControlSuggestionModal from "@/components/views/ControlSuggestionModal"
+import RiskControlModal from "@/components/views/ControlSuggestionModal"
 import { cn } from "@/lib/utils"
+import {
+  transformProces,
+  transformChannels,
+  transformConsequences,
+  transformCauses,
+  transformEvent,
+  transformEventLog,
+  transformService,
+  transformEmployees
+} from "@/lib/transformers"
+import api from "@/lib/axios"
 
 interface EventEntry {
   [key: string]: unknown
@@ -36,46 +47,58 @@ interface EventEntry {
   ciudad: string
   responsable: string
   estado: string
-  causa1?: string
-  causa2?: string
-  consecuencia1?: string
-  consecuencia2?: string
+  causa1: string
+  causa2: string
+  consecuencia1: string
+  consecuencia2: string
 }
 
-// Definir el tipo para los datos del riesgo
-interface RiskData {
-  field1: string // Tipo de Riesgo
-  field2: string // Factor de Riesgo  
-  field3: string // Proceso
-  field4: string // Canal
-  field5: string // Evento
+interface RiskEntry {
+  id: string
+  t_riesgo: string
+  factor_id: string
+  description: string
+  probabilidad: string
+  impacto: string
+}
+
+interface Cause {
+  id: number;
+  description: string;
+}
+
+interface Consequence {
+  id: number;
+  description: string;
+}
+
+interface Channel {
+  id: string;
+  name: string;
+}
+
+interface Process {
+  id: string
+  macroprocess_id: string
+  macro: string // nombre macroproceso
+  description: string
+  personal_id: string
+}
+interface Service {
+  id: string
+  name: string
+}
+
+interface Employee {
+  cedula: string
+  name: string
+  cargo: string
+  area: string
+  correo: string
+  notifica: boolean
 }
 
 const predefinedEstados = ["Controlado", "En Proceso", "Pendiente"]
-const procesos = ["Ventas", "Operaciones", "Finanzas", "Recursos Humanos", "Tecnología", "Legal"]
-const canales = ["Presencial", "Digital", "Telefónico", "Correo", "Otro"]
-const ciudades = ["Bogotá", "Medellín", "Cali", "Barranquilla", "Cartagena", "Otra"]
-const causas = [
-  "Falta de capacitación",
-  "Error humano",
-  "Falla de sistema",
-  "Proceso inadecuado",
-  "Falta de supervisión",
-  "Comunicación deficiente",
-  "Recursos insuficientes",
-  "Otra",
-]
-const consecuencias = [
-  "Pérdida financiera",
-  "Daño reputacional",
-  "Incumplimiento regulatorio",
-  "Interrupción operativa",
-  "Pérdida de clientes",
-  "Riesgo legal",
-  "Impacto ambiental",
-  "Otra",
-]
-const servicios = ["Crédito", "Ahorro", "Inversión", "Seguros", "Tarjetas", "Transferencias", "Consultoría", "Otro"]
 
 export default function EventRisk() {
   const { toast } = useToast()
@@ -114,42 +137,97 @@ export default function EventRisk() {
     cuantia: false,
     factorRiesgo: false,
     descripcion: false,
+    productoServicio: false,
     proceso: false,
+    canal:false,
     responsable: false,
     estado: false,
+    causa1: false,
+    consecuencia1: false,
   })
-  const [showSuggestionModal, setShowSuggestionModal] = useState(false)
-  const [isLoadingModal, setIsLoadingModal] = useState(false)
+  const [procesList, setProcesList] = useState<Process[]>([])
+  const [channelLis, setChannelList] = useState<Channel[]>([]);
+  const [causeList, setCauseList] = useState<Cause[]>([]);
+  const [consequenceList, setConsequenceList] = useState<Consequence[]>([]); 
+  const [riskEntries, setRiskEntries] = useState<RiskEntry[]>([])
+  const [serviceList, setServiceList] = useState<Service[]>([]);
+  const [personalList, setPersonalList] = useState<Employee[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const riskData = {
+    field1: "Operativo",
+    field2: "Procesos",
+    field3: "Ventas",
+    field4: "Online",
+    field5: "Pérdida de datos"
+  }
   const [eventEntries, setEventEntries] = useState<EventEntry[]>([])
-  const [modalOpen, setModalOpen] = useState(false)
-  const [riskData, setRiskData] = useState<RiskData>({
-    field1: "", // Tipo de Riesgo
-    field2: "", // Factor de Riesgo  
-    field3: "", // Proceso
-    field4: "", // Canal
-    field5: ""  // Evento
-  })
-  // Al abrir el modal con datos
-  const openSuggestionsModal = (data: RiskData) => {
-    setRiskData(data)
-    setShowSuggestionModal(true) // Activar el flag
-    setModalOpen(true)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const getProcesDescription = (id_proces: string) => {
+    const proces = procesList.find((type) => type.id === id_proces)
+    return proces ? proces.description : id_proces
   }
 
-  // Función para cerrar el modal
-  const closeSuggestionsModal = () => {
-    setModalOpen(false)
-    setShowSuggestionModal(false) // Desactivar el flag
-    setRiskData({
-      field1: "",
-      field2: "",
-      field3: "",
-      field4: "",
-      field5: ""
-    })
+  const getChanelDescription = (id_chanel: string) => {
+    const chanel = channelLis.find((type) => type.id === id_chanel)
+    return chanel ? chanel.name : id_chanel
   }
 
-  const validateForm = () => {
+  const getCauseDescription = (id_cause: string) => {
+    const cause = causeList.find((type) => type.id.toString() === id_cause)
+    return cause ? cause.description : id_cause
+  }
+
+  const getConseDescription = (id_conse: string) => {
+    const conse = consequenceList.find((type) => type.id.toString() === id_conse)
+    return conse ? conse.description : id_conse
+  }
+
+  const getEventDescription = (id_event: string) => {
+    const event = riskEntries.find((type) => type.id === id_event)
+    return event ? event.description : id_event
+  }
+
+  const getServiceDescription = (id_service: string) => {
+    const service = serviceList.find((type) => type.id.toString() === id_service)
+    return service ? service.name : id_service
+  }
+
+  useEffect(() => {
+    const fetchEventLog = async () =>{
+      setIsLoading(true)
+      try {
+        const responseEvent = await api.get("/events")
+        setRiskEntries(transformEvent(responseEvent.data))
+        const responseCause = await api.get("/causes");
+        setCauseList(transformCauses(responseCause.data));
+        const responseConse = await api.get("/consequences"); 
+        setConsequenceList(transformConsequences(responseConse.data));
+        const responseChanel = await api.get("/channels" );
+        setChannelList(transformChannels(responseChanel.data));
+        const responseProces = await api.get("/processes");
+        setProcesList(transformProces(responseProces.data));
+        const responseService = await api.get("/products");
+        setServiceList(transformService(responseService.data))
+        const responsePersonal = await api.get("/personal/notify")
+        setPersonalList(transformEmployees(responsePersonal.data))
+        const response = await api.get("/event_logs")
+        setEventEntries(transformEventLog(response.data))
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error al cargar datos",
+          description: "No se pudo obtener los listados.",
+        })
+      } finally {
+        setIsLoading(false)        
+      }      
+    }
+    fetchEventLog()
+  }, [toast])
+
+  const validateForm = useCallback(() => {
     const newErrors = {
       eventId: !formData.eventId.trim(),
       fechaInicio: !formData.fechaInicio.trim(),
@@ -159,15 +237,19 @@ export default function EventRisk() {
       cuantia: !formData.cuantia.trim(),
       factorRiesgo: !formData.factorRiesgo.trim(),
       descripcion: !formData.descripcion.trim(),
+      productoServicio: !formData.productoServicio.trim(),
       proceso: !formData.proceso.trim(),
+      canal:!formData.canal.trim(),
       responsable: !formData.responsable.trim(),
       estado: !formData.estado.trim(),
+      causa1: !formData.causa1.trim(),
+      consecuencia1: !formData.consecuencia1.trim(),
     }
     setErrors(newErrors)
     return Object.values(newErrors).every((error) => !error)
-  }
+  }, [formData])
 
-  const resetForm = () => {
+  const resetForm = useCallback( () => {
     setFormData({
       id: "",
       eventId: "",
@@ -202,14 +284,20 @@ export default function EventRisk() {
       cuantia: false,
       factorRiesgo: false,
       descripcion: false,
+      productoServicio: false,
       proceso: false,
+      canal:false,
       responsable: false,
       estado: false,
+      causa1: false,
+      consecuencia1: false,
     })
-  }
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
     e.preventDefault()
+
     if (!validateForm()) {
       toast({
         variant: "destructive",
@@ -218,50 +306,132 @@ export default function EventRisk() {
       })
       return
     }
+    setIsLoading(true)
+    try {
+      const payload = {
+        event_id: parseInt(formData.eventId, 10),
+        description: formData.descripcion,
+        start_date: formData.fechaFinal,
+        end_date: formData.fechaFinal,
+        discovery_date: formData.fechaDescubrimiento,
+        accounting_date: formData.fechaContabilizacion,
+        amount: parseFloat(formData.cuantia) || 0, // Asegura que sea un número flotante
+        recovered_amount: parseFloat(formData.cuantiaRecuperada) || 0,
+        insurance_recovery: parseFloat(formData.cuantiaRecuperadaSeguros) || 0,
+        acount: parseInt(formData.cuentaContable, 10) || 0, 
+        product_id: parseInt(formData.productoServicio, 10),
+        process_id: parseInt(formData.proceso, 10),
+        channel_id: parseInt(formData.canal, 10),
+        city: formData.ciudad, 
+        responsible_id: formData.responsable,
+        status: formData.estado,
+        cause1_id: parseInt(formData.causa1, 10),
+        cause2_id: parseInt(formData.causa2, 10) || null,
+        conse1_id: parseInt(formData.consecuencia1, 10),
+        conse2_id: parseInt(formData.consecuencia2, 10) || null, 
+      };
+      
+      if (editingId) {
+        await api.put(`/event_logs/${editingId}`, payload)
+        setEventEntries(eventEntries.map((entry) => (entry.id === editingId ? { ...formData, id: editingId } : entry)))
+        toast({
+          title: "Evento actualizado",
+          description: "El registro del evento ha sido actualizado exitosamente.",
+        })
+      } else {
+        const responseEventlog = await api.post ("/event_logs", payload)
 
-    if (editingId) {
-      setEventEntries(eventEntries.map((entry) => (entry.id === editingId ? { ...formData, id: editingId } : entry)))
-      toast({
-        title: "Evento actualizado",
-        description: "El registro del evento ha sido actualizado exitosamente.",
-      })
-    } else {
-      const newEntry = { ...formData, id: Date.now().toString() }
-      setEventEntries([...eventEntries, newEntry])
-      toast({
-        title: "Evento agregado",
-        description: "El nuevo evento ha sido registrado exitosamente.",
-      })
-    }
-    resetForm()
-  }
+        personalList.forEach(async (persona) => {
+          const payloadEmail = {
+            email_send: persona.correo,
+            description: formData.descripcion,
+            personal:formData.responsable,
+          }
+          await api.post("/email", payloadEmail)
+        })
+        
+        const newEntry = {
+          id: responseEventlog.data.id_eventlog,
+          eventId: getEventDescription(responseEventlog.data.event_id),
+          fechaInicio: responseEventlog.data.start_date,
+          fechaFinal: responseEventlog.data.end_date,
+          fechaDescubrimiento: responseEventlog.data.discovery_date,
+          fechaContabilizacion: responseEventlog.data.account_date,
+          cuantia: responseEventlog.data.amount,
+          cuantiaRecuperada: responseEventlog.data.recovered_amount,
+          cuantiaRecuperadaSeguros: responseEventlog.data.insurance_recovery,
+          factorRiesgo: responseEventlog.data,
+          cuentaContable: responseEventlog.data.acount,
+          productoServicio: getServiceDescription(responseEventlog.data.product_id),
+          proceso: getProcesDescription(responseEventlog.data.process_id),
+          descripcion: responseEventlog.data.description,
+          canal: getChanelDescription(responseEventlog.data.chanel_id),
+          ciudad: responseEventlog.data.city,
+          responsable: responseEventlog.data.resonsible_id,
+          estado: responseEventlog.data.status,
+          causa1: getCauseDescription(responseEventlog.data.cause1_id),
+          causa2: getCauseDescription(responseEventlog.data.cause2_id),
+          consecuencia1: getConseDescription(responseEventlog.data.conse1_id),
+          consecuencia2: getConseDescription(responseEventlog.data.conse2_id),          
+        }
+        setEventEntries([...eventEntries, newEntry])
+        toast({
+          title: "Riesgo agregado",
+          description: "El nuevo Riesgo ha sido registrado exitosamente.",
+        })
+      }
+      resetForm()
+    } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error al procesar la solicitud.",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [formData, editingId, validateForm, resetForm, toast],
+  )
 
-  const handleEdit = (entry: EventEntry) => {
+  const handleEdit = useCallback((entry: EventEntry) => {
     setFormData(entry)
     setEditingId(entry.id)
-  }
+  }, [])
 
-  const handleDelete = (id: string) => {
-    setEventEntries(eventEntries.filter((entry) => entry.id !== id))
-    toast({
-      title: "Evento eliminado",
-      description: "El registro ha sido eliminado exitosamente.",
-    })
-    if (editingId === id) resetForm()
-  }
+  const handleDelete = useCallback(
+    async(id: string) => {
+      const confirmDelete = window.confirm("¿Estás segura de que deseas eliminar este evento?")
+      if (!confirmDelete) return
+
+      setIsLoading(true)  
+      try {
+        await api.delete(`/event_logs/${id}`)      
+        setEventEntries(eventEntries.filter((entry) => entry.id !== id))
+        if (editingId === id) {
+          resetForm()
+        }        
+        toast({
+          title: "Riesgo eliminado",
+          description: "El registro ha sido eliminado exitosamente.",
+        })
+      } catch (error) {
+        console.error(error)
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Ocurrió un error al eliminar el evento.",
+        })
+      } finally {
+        setIsLoading(false)
+      }
+    }, [editingId, resetForm, toast],
+  )
 
   const formatCurrency = (value: string) => {
     if (!value) return ""
     return new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP" }).format(Number(value))
-  }
-
-  const handleSuggestControl = () => {
-    setIsLoadingModal(true)
-    setShowSuggestionModal(true)
-    // Simulate loading for the modal
-    setTimeout(() => {
-      setIsLoadingModal(false)
-    }, 1000)
   }
 
   const handleCancel = () => {
@@ -282,16 +452,28 @@ export default function EventRisk() {
             {/* Columna 1 */}
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="eventId" className="text-sm font-medium text-violet-700">
-                  Id (Código del evento) <span className="text-red-500">*</span>
+                <Label htmlFor="riskEntry" className="text-sm font-medium text-violet-700">
+                  Riesgo <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="eventId"
+                <Select
                   value={formData.eventId}
-                  onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
-                  placeholder="Ingrese el código"
-                  className={cn(errors.eventId ? "border-red-500" : "border-violet-200")}
-                />
+                  onValueChange={(value) => setFormData({ ...formData, eventId: value })}
+                >
+                  <SelectTrigger className={cn(errors.eventId ? "border-red-500" : "border-violet-200")}>
+                    <SelectValue placeholder="Seleccione un riesgo" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                    {riskEntries.map((risk) => (
+                      <SelectItem 
+                        key={risk.id} 
+                        value={risk.id} 
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black"
+                      >
+                        {risk.description}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.eventId && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
               </div>
 
@@ -379,10 +561,11 @@ export default function EventRisk() {
                   <SelectTrigger className={cn(errors.proceso ? "border-red-500" : "border-violet-200")}>
                     <SelectValue placeholder="Seleccione un proceso" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {procesos.map((proceso) => (
-                      <SelectItem key={proceso} value={proceso}>
-                        {proceso}
+                  <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                    {procesList.map((proceso) => (
+                      <SelectItem key={proceso.id} value={proceso.id} 
+                      className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                        {proceso.description}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -398,10 +581,11 @@ export default function EventRisk() {
                   <SelectTrigger className="border-violet-200">
                     <SelectValue placeholder="Seleccione un canal" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {canales.map((canal) => (
-                      <SelectItem key={canal} value={canal}>
-                        {canal}
+                  <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                    {channelLis.map((canal) => (
+                      <SelectItem key={canal.id} value={canal.id}
+                      className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                        {canal.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -412,20 +596,16 @@ export default function EventRisk() {
                 <Label htmlFor="ciudad" className="text-sm font-medium text-violet-700">
                   Ciudad
                 </Label>
-                <Select value={formData.ciudad} onValueChange={(value) => setFormData({ ...formData, ciudad: value })}>
-                  <SelectTrigger className="border-violet-200">
-                    <SelectValue placeholder="Seleccione una ciudad" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ciudades.map((ciudad) => (
-                      <SelectItem key={ciudad} value={ciudad}>
-                        {ciudad}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <input
+                  type="text"
+                  id="ciudad"
+                  name="ciudad"
+                  className="w-full border border-violet-200 rounded-md p-2 text-sm"
+                  placeholder="Ingrese una ciudad"
+                  value={formData.ciudad}
+                  onChange={(e) => setFormData({ ...formData, ciudad: e.target.value })}
+                />
               </div>
-
               <div className="space-y-2">
                 <Label htmlFor="responsable" className="text-sm font-medium text-violet-700">
                   Responsable <span className="text-red-500">*</span>
@@ -434,7 +614,7 @@ export default function EventRisk() {
                   id="responsable"
                   value={formData.responsable}
                   onChange={(e) => setFormData({ ...formData, responsable: e.target.value })}
-                  placeholder="Nombre del responsable"
+                  placeholder="ID del responsable"
                   className={cn(errors.responsable ? "border-red-500" : "border-violet-200")}
                 />
                 {errors.responsable && <p className="text-xs text-red-500">Este campo es obligatorio</p>}
@@ -448,9 +628,10 @@ export default function EventRisk() {
                   <SelectTrigger className={cn(errors.estado ? "border-red-500" : "border-violet-200")}>
                     <SelectValue placeholder="Seleccione un estado" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
                     {predefinedEstados.map((estado) => (
-                      <SelectItem key={estado} value={estado}>
+                      <SelectItem key={estado} value={estado}
+                      className="hover:bg-violet-100 focus:bg-violet-200 text-black">
                         {estado}
                       </SelectItem>
                     ))}
@@ -543,10 +724,11 @@ export default function EventRisk() {
                   <SelectTrigger className="border-violet-200">
                     <SelectValue placeholder="Seleccione un servicio" />
                   </SelectTrigger>
-                  <SelectContent>
-                    {servicios.map((servicio) => (
-                      <SelectItem key={servicio} value={servicio}>
-                        {servicio}
+                  <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                    {serviceList.map((servicio) => (
+                      <SelectItem key={servicio.id} value={servicio.id.toString()}
+                      className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                        {servicio.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -566,10 +748,11 @@ export default function EventRisk() {
                     <SelectTrigger className="border-violet-200">
                       <SelectValue placeholder="Seleccione causa 1" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {causas.map((causa) => (
-                        <SelectItem key={causa} value={causa}>
-                          {causa}
+                    <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                      {causeList.map((causa) => (
+                        <SelectItem key={causa.id} value={causa.id.toString()}
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                          {causa.description}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -581,10 +764,11 @@ export default function EventRisk() {
                     <SelectTrigger className="border-violet-200">
                       <SelectValue placeholder="Seleccione causa 2" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {causas.map((causa) => (
-                        <SelectItem key={causa} value={causa}>
-                          {causa}
+                    <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                      {causeList.map((causa) => (
+                        <SelectItem key={causa.id} value={causa.id.toString()}
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                          {causa.description}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -601,10 +785,11 @@ export default function EventRisk() {
                     <SelectTrigger className="border-violet-200">
                       <SelectValue placeholder="Seleccione consecuencia 1" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {consecuencias.map((consecuencia) => (
-                        <SelectItem key={consecuencia} value={consecuencia}>
-                          {consecuencia}
+                    <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                      {consequenceList.map((consecuencia) => (
+                        <SelectItem key={consecuencia.id} value={consecuencia.id.toString()}
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                          {consecuencia.description}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -616,10 +801,11 @@ export default function EventRisk() {
                     <SelectTrigger className="border-violet-200">
                       <SelectValue placeholder="Seleccione consecuencia 2" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {consecuencias.map((consecuencia) => (
-                        <SelectItem key={consecuencia} value={consecuencia}>
-                          {consecuencia}
+                    <SelectContent className="bg-white shadow-md border border-gray-200 rounded-md">
+                      {consequenceList.map((consecuencia) => (
+                        <SelectItem key={consecuencia.id} value={consecuencia.id.toString()}
+                        className="hover:bg-violet-100 focus:bg-violet-200 text-black">
+                          {consecuencia.description}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -650,13 +836,7 @@ export default function EventRisk() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => openSuggestionsModal({
-                  field1: "Valor del campo 1",
-                  field2: "Valor del campo 2",
-                  field3: "Valor del campo 3",
-                  field4: "Valor del campo 4",
-                  field5: "Valor del campo 5"
-                })}
+                onClick={() => setIsModalOpen(true)}
                 className="bg-violet-900 border-violet-500 text-white hover:bg-orange-500 flex items-center gap-1 ml-auto"
               >
                 <Lightbulb className="w-4 h-4" />
@@ -743,19 +923,11 @@ export default function EventRisk() {
             </Table>
           </div>
         </Card>
-
-        {showSuggestionModal && (
-        <ControlSuggestionModal
-          open={modalOpen}
-          onClose={closeSuggestionsModal} // Usar la función de cierre personalizada
-          loading={false}
-          field1={riskData.field1}
-          field2={riskData.field2}
-          field3={riskData.field3}
-          field4={riskData.field4}
-          field5={riskData.field5}
+        <RiskControlModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        riskData={riskData}
         />
-        )}
       </div>
     </div>
   )
