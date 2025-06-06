@@ -59,7 +59,7 @@ export default function ControlSuggestionModal({
 
     try {
       // Llamada a tu API route de Next.js en lugar de directamente a OpenAI
-      const response = await fetch('/api/suggestions', {
+      const response = await fetch('app/api/suggestion/route.ts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

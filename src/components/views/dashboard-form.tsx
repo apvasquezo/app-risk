@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import PieChart from "@/components/charts/pie-chart"
 import BarChart from "@/components/charts/bar-chart"
@@ -7,8 +8,33 @@ import LineChart from "@/components/charts/line-chart"
 import AreaChart from "@/components/charts/area-chart"
 import RadarChart from "@/components/charts/radar-chart"
 import HeatmapChart from "@/components/charts/heatmap-chart"
+import api from "@/lib/axios"
 
 export default function Dashboard() {
+  const [planStatusLabels, setPlanStatusLabels] = useState<string[]>([])
+  const [planStatusData, setPlanStatusData] = useState<number[]>([])
+
+  useEffect(() => {
+    async function fetchPlanStatus() {
+      try {
+        const response = await api.get("/dashboard")
+        const plans = response.data
+
+        const counts: Record<string, number> = {}
+        plans.forEach((plan: { state: string }) => {
+          counts[plan.state] = (counts[plan.state] || 0) + 1
+        })
+
+        setPlanStatusLabels(Object.keys(counts))
+        setPlanStatusData(Object.values(counts))
+      } catch (error) {
+        console.error("Error al obtener los estados de planes:", error)
+      }
+    }
+
+    fetchPlanStatus()
+  }, [])
+
   return (
     <div className="container mx-8 py-3">
       <h1 className="text-3xl font-bold mb-6 text-purple-800">Dashboard de Riesgos</h1>
@@ -76,8 +102,8 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="h-80">
               <PieChart
-              labels={["planStatusLabels"]}
-              data={[planStatusdata]}
+              labels={planStatusLabels}
+              data={planStatusData}
             />
           </CardContent>
         </Card>

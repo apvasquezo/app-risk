@@ -9,7 +9,7 @@ export async function POST(request: Request) {
           { status: 400 }
         )
       }
-  
+      console.log("KEY:", process.env.API_KEY_OPENAI)  
       // Crear el prompt aquí
       const prompt = `Actúa como un experto en gestión de riesgos. Necesito que me proporciones tres sugerencias de control cortas para el siguiente riesgo:
   

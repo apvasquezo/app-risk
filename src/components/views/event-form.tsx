@@ -198,11 +198,11 @@ export default function RiskManagement() {
           const response = await api.post("/events", payload)
           const newEntry = {
             id: response.data.id_event,
-            t_riesgo: response.data.risk_type_id,
-            factor_id: response.data.factor_id,
+            t_riesgo: getRiskTypeDescription(response.data.risk_type_id).toString(),
+            factor_id: getRiskFactorDescription(response.data.factor_id).toString(),
             description: response.data.description,
-            probabilidad: response.data.probability_id,
-            impacto: response.data.impact_id,
+            probabilidad:getProbabilityDescription(response.data.probability_id).toString(),
+            impacto: getImpactDescription(response.data.impact_id).toString()
           }
           setRiskEntries((prev) => [...prev, newEntry])
           toast({
