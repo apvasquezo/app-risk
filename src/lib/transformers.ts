@@ -354,19 +354,46 @@ export const transformService = (data: Services[]) => {
 
 export interface EvalControl {
   id_evaluation: number
-  event_id: number 
+  eventlog_id: number
   control_id: number
   eval_date: string
   n_probability: number
   n_impact: number
-  personal_id: string
   next_date: string
   description: string
-  state:string   
+  observation: string
+  state_control: string
+  state_evaluation: string
+  control_efficiency: number
+  created_by: string     
 }
 
 export const transformEvaluation =(data: EvalControl[]) => {
-  return data.map((item) => {
-    
-  })
+  return data.map((item) => ({
+    id: item.id_evaluation.toString(),
+    idControl: item.control_id.toString(),
+    idEvento: item.eventlog_id.toString(),
+    fechaEvaluacion: item.eval_date ?? "",
+    nivelProbabilidad: item.n_probability.toString(),
+    nivelImpacto: item.n_impact.toString(),
+    fechaProximaEvaluacion: item.next_date ?? "",
+    descripcion: item.description,
+    observacion: item.observation,
+    efectividadControl: item.control_efficiency.toString(),
+    estadoControl: item.state_control,
+    estadoEvaluacion: item.state_evaluation,
+    usuario: item.created_by,
+  }));
+}
+
+export interface EventLog {
+  id_eventlog: string
+  description: string
+}
+
+export const transformRisk = (data:EventLog []) => {
+  return data.map((item) => ({
+    id: item.id_eventlog.toString(),
+    name: item.description,
+  }));
 }

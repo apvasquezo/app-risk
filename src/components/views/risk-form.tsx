@@ -360,14 +360,14 @@ export default function EventRisk() {
           cuantia: responseEventlog.data.amount,
           cuantiaRecuperada: responseEventlog.data.recovered_amount,
           cuantiaRecuperadaSeguros: responseEventlog.data.insurance_recovery,
-          factorRiesgo: responseEventlog.data,
+          factorRiesgo: formData.factorRiesgo,
           cuentaContable: responseEventlog.data.acount,
           productoServicio: getServiceDescription(responseEventlog.data.product_id),
           proceso: getProcesDescription(responseEventlog.data.process_id),
           descripcion: responseEventlog.data.description,
           canal: getChanelDescription(responseEventlog.data.chanel_id),
           ciudad: responseEventlog.data.city,
-          responsable: responseEventlog.data.resonsible_id,
+          responsable: responseEventlog.data.responsible_id,
           estado: responseEventlog.data.status,
           causa1: getCauseDescription(responseEventlog.data.cause1_id),
           causa2: getCauseDescription(responseEventlog.data.cause2_id),
@@ -375,6 +375,7 @@ export default function EventRisk() {
           consecuencia2: getConseDescription(responseEventlog.data.conse2_id),          
         }
         setEventEntries([...eventEntries, newEntry])
+
         toast({
           title: "Riesgo agregado",
           description: "El nuevo Riesgo ha sido registrado exitosamente.",
