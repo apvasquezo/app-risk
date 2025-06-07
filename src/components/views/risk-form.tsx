@@ -340,7 +340,7 @@ export default function EventRisk() {
         })
       } else {
         const responseEventlog = await api.post ("/event_logs", payload)
-
+        
         personalList.forEach(async (persona) => {
           const payloadEmail = {
             email_send: persona.correo,
@@ -878,7 +878,7 @@ export default function EventRisk() {
                     <TableRow key={entry.id}>
                       <TableCell>{entry.eventId}</TableCell>
                       <TableCell>{new Date(entry.fechaInicio).toLocaleDateString("es-CO")}</TableCell>
-                      <TableCell>{formatCurrency(entry.cuantia)}</TableCell>
+                      <TableCell>{entry.cuantia}</TableCell>
                       <TableCell>{entry.factorRiesgo}</TableCell>
                       <TableCell>{entry.proceso}</TableCell>
                       <TableCell>{entry.responsable}</TableCell>

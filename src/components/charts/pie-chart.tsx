@@ -47,6 +47,9 @@ export default function PieChart({ labels, data }: PieChartProps) {
 
   if (!mounted) return <div className="h-full flex items-center justify-center">Loading chart...</div>;
 
+  console.log("📊 PieChart - Labels:", labels);
+  console.log("📊 PieChart - Data:", data);
+
   return (
     <div className="h-full w-full flex items-center justify-center">
       <ReactApexChart options={options} series={series} type="pie" height="100%" />
