@@ -340,7 +340,7 @@ export default function EventRisk() {
         })
       } else {
         const responseEventlog = await api.post ("/event_logs", payload)
-
+        
         personalList.forEach(async (persona) => {
           const payloadEmail = {
             email_send: persona.correo,
@@ -360,14 +360,14 @@ export default function EventRisk() {
           cuantia: responseEventlog.data.amount,
           cuantiaRecuperada: responseEventlog.data.recovered_amount,
           cuantiaRecuperadaSeguros: responseEventlog.data.insurance_recovery,
-          factorRiesgo: responseEventlog.data,
+          factorRiesgo: formData.factorRiesgo,
           cuentaContable: responseEventlog.data.acount,
           productoServicio: getServiceDescription(responseEventlog.data.product_id),
           proceso: getProcesDescription(responseEventlog.data.process_id),
           descripcion: responseEventlog.data.description,
           canal: getChanelDescription(responseEventlog.data.chanel_id),
           ciudad: responseEventlog.data.city,
-          responsable: responseEventlog.data.resonsible_id,
+          responsable: responseEventlog.data.responsible_id,
           estado: responseEventlog.data.status,
           causa1: getCauseDescription(responseEventlog.data.cause1_id),
           causa2: getCauseDescription(responseEventlog.data.cause2_id),
@@ -877,7 +877,7 @@ export default function EventRisk() {
                     <TableRow key={entry.id}>
                       <TableCell>{entry.eventId}</TableCell>
                       <TableCell>{new Date(entry.fechaInicio).toLocaleDateString("es-CO")}</TableCell>
-                      <TableCell>{formatCurrency(entry.cuantia)}</TableCell>
+                      <TableCell>{entry.cuantia}</TableCell>
                       <TableCell>{entry.factorRiesgo}</TableCell>
                       <TableCell>{entry.proceso}</TableCell>
                       <TableCell>{entry.responsable}</TableCell>
