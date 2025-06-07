@@ -1,35 +1,33 @@
 "use client";
-
 import type React from "react";
 import { Button } from "@/components/ui/button";
 import { FileSpreadsheet, FileText } from "lucide-react";
-import { exportToExcel, exportToPDF, prepareDataForExport } from "@/lib/export-utils";
+import { exportToExcel, exportToPDF } from "@/lib/export-utils";
 
 interface ExportButtonsProps {
   data: Record<string, unknown>[];
   fileName?: string;
+  // Opcional: mapeo personalizado de columnas para el PDF
+  columnMapping?: Record<string, string>;
+  // Opcional: columnas específicas para exportar (si no se especifica, exporta todas)
+  columnsToExport?: string[];
+  // Opcional: título personalizado para el PDF
+  pdfTitle?: string;
 }
 
-export const ExportButtons: React.FC<ExportButtonsProps> = ({ data, fileName = "riesgos-export" }) => {
-  // Columnas para exportar a PDF
-  const pdfColumns = [
-    "ID",
-    "Fecha Inicio",
-    "Cuantía",
-    "Factor de Riesgo",
-    "Proceso",
-    "Responsable",
-    "Estado",
-  ];
-
+export const ExportButtons: React.FC<ExportButtonsProps> = ({ 
+  data, 
+  fileName = "export-data",
+  columnMapping,
+  columnsToExport,
+  pdfTitle = "Reporte de Datos"
+}) => {
   const handleExportToExcel = () => {
-    const exportData = prepareDataForExport(data);
-    exportToExcel(exportData, fileName);
+    exportToExcel(data, fileName, columnsToExport, columnMapping);
   };
 
   const handleExportToPDF = () => {
-    const exportData = prepareDataForExport(data);
-    exportToPDF(exportData, fileName, pdfColumns);
+    exportToPDF(data, fileName, columnsToExport, columnMapping, pdfTitle);
   };
 
   return (
