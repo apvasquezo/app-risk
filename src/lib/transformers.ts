@@ -368,7 +368,14 @@ export interface EvalControl {
   created_by: string     
 }
 
-export const transformEvaluation =(data: EvalControl[]) => {
+export const transformEvaluation = (data: EvalControl[]) => {
+  const efectividadInverseMap: Record<number, string> = {
+    0.2: "Critica 0% - 20%",
+    0.5: "Baja 21% - 50%",
+    0.8: "Media 51% - 80%",
+    1.0: "Alta 81% - 100%",
+  }
+
   return data.map((item) => ({
     id: item.id_evaluation.toString(),
     idControl: item.control_id.toString(),
@@ -379,13 +386,12 @@ export const transformEvaluation =(data: EvalControl[]) => {
     fechaProximaEvaluacion: item.next_date ?? "",
     descripcion: item.description,
     observacion: item.observation,
-    efectividadControl: item.control_efficiency.toString(),
+    efectividadControl: efectividadInverseMap[item.control_efficiency] || item.control_efficiency.toString(),
     estadoControl: item.state_control,
     estadoEvaluacion: item.state_evaluation,
     usuario: item.created_by,
-  }));
+  }))
 }
-
 export interface EventLog {
   id_eventlog: string
   description: string

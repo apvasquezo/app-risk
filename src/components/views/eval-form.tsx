@@ -13,7 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { ExportButtons } from "@/components/ui/export-buttons"
-import { transformProbability, transformEvaluation,transformImpact, transformControls, transformRisk } from "@/lib/transformers"
+import {
+  transformProbability,
+  transformEvaluation,
+  transformImpact,
+  transformControls,
+  transformRisk,
+} from "@/lib/transformers"
 import api from "@/lib/axios"
 
 interface ControlEvaluation {
@@ -60,7 +66,7 @@ interface Control {
   responsable: string
 }
 
-const efectyControl = ["Critica 0% - 20%", "Baja 21% - 50%", "Media 51% - 80%", "Alta 81% - 100"]
+const efectyControl = ["Critica 0% - 20%", "Baja 21% - 50%", "Media 51% - 80%", "Alta 81% - 100%"]
 const stateControl = ["Propuesto", "Aprobado", "En Implementación", "Activo", "En Revisión", "Eliminado"]
 const stateEvaluation = [
   "Pendiente de Evaluación",
@@ -80,8 +86,7 @@ const observacionOptions = [
 export default function ControlEvaluationForm() {
   const { toast } = useToast()
 
-  const [formData, setFormData] = useState<ControlEvaluation>({
-    id: "",
+  const [formData, setFormData] = useState({
     idControl: "",
     idEvento: "",
     fechaEvaluacion: "",
@@ -93,7 +98,6 @@ export default function ControlEvaluationForm() {
     efectividadControl: "",
     estadoControl: "",
     estadoEvaluacion: "",
-    usuario:"",
   })
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -131,7 +135,7 @@ export default function ControlEvaluationForm() {
       const risk = eventLogList.find((type) => type.id === id_eventlog.toString())
       return risk ? risk.name : id_eventlog
     },
-    [controlList],
+    [eventLogList],
   )
 
   const getProbabilityDescription = useCallback(
@@ -145,7 +149,6 @@ export default function ControlEvaluationForm() {
   const getImpactDescription = useCallback(
     (level: string) => {
       const impact = impactList.find((i) => i.level.toString() === level)
-      console.log("El impacto es ", level)
       return impact ? impact.description : level
     },
     [impactList],
@@ -167,9 +170,10 @@ export default function ControlEvaluationForm() {
 
         const responseEventLog = await api.get("/event_logs/name")
         setEventLogList(transformRisk(responseEventLog.data))
-        console.log("riesgos ",transformRisk(responseEventLog.data) )
+
         const responseEval = await api.get("/evalcontrol")
         setEvaluations(transformEvaluation(responseEval.data))
+        console.log("evaluacion ", responseEval.data)
       } catch (error) {
         console.error(error)
         toast({
@@ -183,13 +187,6 @@ export default function ControlEvaluationForm() {
     }
     fetchEvaluation()
   }, [toast])
-
-  useEffect(() => {
-    console.log("EventLogList:", eventLogList)
-    console.log("ControlList:", controlList)
-    console.log("ProbList:", probList)
-    console.log("ImpactList:", impactList)
-  }, [eventLogList, controlList, probList, impactList])
 
   const validateForm = useCallback(() => {
     const newErrors = {
@@ -224,7 +221,6 @@ export default function ControlEvaluationForm() {
 
   const resetForm = useCallback(() => {
     setFormData({
-      id: "",
       idControl: "",
       idEvento: "",
       fechaEvaluacion: "",
@@ -236,7 +232,6 @@ export default function ControlEvaluationForm() {
       efectividadControl: "",
       estadoControl: "",
       estadoEvaluacion: "",
-      usuario:"",
     })
     setEditingId(null)
     setErrors({
@@ -272,11 +267,10 @@ export default function ControlEvaluationForm() {
           "Critica 0% - 20%": 0.2,
           "Baja 21% - 50%": 0.5,
           "Media 51% - 80%": 0.8,
-          "Alta 81% - 100": 1.0,
+          "Alta 81% - 100%": 1.0,
         }
-        
+
         const eficiencia = efectividadMap[formData.efectividadControl]
-        console.log("eficiencia ", eficiencia)
         if (eficiencia === undefined) {
           toast({
             variant: "destructive",
@@ -286,8 +280,8 @@ export default function ControlEvaluationForm() {
           return
         }
         const payload = {
-          eventlog_id: parseInt(formData.idEvento),
-          control_id: parseInt(formData.idControl),
+          eventlog_id: Number.parseInt(formData.idEvento),
+          control_id: Number.parseInt(formData.idControl),
           eval_date: formData.fechaEvaluacion,
           n_probability: formData.nivelProbabilidad,
           n_impact: formData.nivelImpacto,
@@ -299,36 +293,18 @@ export default function ControlEvaluationForm() {
           observation: formData.observacion,
           created_by: "admin",
         }
-        console.log("payload ", payload)
         if (editingId) {
           await api.put(`/evalcontrol/${editingId}`, payload)
-          setEvaluations(
-            evaluations.map((evaluation) =>
-              evaluation.id === editingId ? { ...formData, id: editingId } : evaluation,
-            ),
-          )
+          const responseEval = await api.get("/evalcontrol")
+          setEvaluations(transformEvaluation(responseEval.data))
           toast({
             title: "Evaluación actualizada",
             description: "La evaluación ha sido actualizada exitosamente.",
           })
         } else {
-          const response = await api.post("/evalcontrol", payload)
-          const newEvaluation = {
-            id: response.data.id_evaluation,
-            idControl: getControlDescription(response.data.control_id),
-            idEvento: response.data.eventlog_id,
-            fechaEvaluacion: response.data.eval_date,
-            nivelProbabilidad: getProbabilityDescription(response.data.n_probability),
-            nivelImpacto: getImpactDescription(response.data.n_impact),
-            fechaProximaEvaluacion: response.data.next_date,
-            descripcion: response.data.description,
-            observacion: response.data.observation,
-            efectividadControl: response.data.control_efficiency,
-            estadoControl: response.data.state_control,
-            estadoEvaluacion: response.data.state_evaluation,
-            usuario:"",
-          }
-          setEvaluations([...evaluations, newEvaluation])
+          await api.post("/evalcontrol", payload)
+          const responseEval = await api.get("/evalcontrol")
+          setEvaluations(transformEvaluation(responseEval.data))
           toast({
             title: "Evaluación registrada",
             description: "La nueva evaluación ha sido registrada exitosamente.",
@@ -360,8 +336,44 @@ export default function ControlEvaluationForm() {
   )
 
   const handleEdit = useCallback((evaluation: ControlEvaluation) => {
-    setFormData(evaluation)
+    console.log("Vamos a editar ", evaluation)
+
+    // Asegurarse de que todos los valores sean strings
+    setFormData({
+      idControl: String(evaluation.idControl || ""),
+      idEvento: String(evaluation.idEvento || ""),
+      fechaEvaluacion: String(evaluation.fechaEvaluacion || ""),
+      nivelProbabilidad: String(evaluation.nivelProbabilidad || ""),
+      nivelImpacto: String(evaluation.nivelImpacto || ""),
+      fechaProximaEvaluacion: String(evaluation.fechaProximaEvaluacion || ""),
+      descripcion: String(evaluation.descripcion || ""),
+      observacion: String(evaluation.observacion || ""),
+      efectividadControl: String(evaluation.efectividadControl || ""),
+      estadoControl: String(evaluation.estadoControl || ""),
+      estadoEvaluacion: String(evaluation.estadoEvaluacion || ""),
+    })
+
     setEditingId(evaluation.id)
+
+    // Limpiar errores al cargar datos para edición
+    setErrors({
+      idControl: false,
+      idEvento: false,
+      fechaEvaluacion: false,
+      nivelProbabilidad: false,
+      nivelImpacto: false,
+      fechaProximaEvaluacion: false,
+      descripcion: false,
+      observacion: false,
+      efectividadControl: false,
+      estadoControl: false,
+      estadoEvaluacion: false,
+    })
+
+    // Forzar actualización después de un pequeño retraso para asegurar que los Select se actualicen
+    setTimeout(() => {
+      console.log("Estado del formulario después de editar:", formData)
+    }, 100)
   }, [])
 
   const handleDelete = useCallback(
@@ -371,7 +383,7 @@ export default function ControlEvaluationForm() {
 
       setIsLoading(true)
       try {
-        await api.delete(`/evalcontrol/${id}`) // Corregido: usar 'id' en lugar de 'editingId'
+        await api.delete(`/evalcontrol/${id}`)
 
         setEvaluations(evaluations.filter((evaluation) => evaluation.id !== id))
         toast({
@@ -413,6 +425,13 @@ export default function ControlEvaluationForm() {
     }
   }
 
+  // Añadir este useEffect después de las otras declaraciones de useEffect
+  useEffect(() => {
+    if (editingId) {
+      console.log("Valores actuales del formulario:", formData)
+    }
+  }, [formData, editingId])
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto space-y-8">
@@ -428,11 +447,11 @@ export default function ControlEvaluationForm() {
                   Riesgo (aplicar control) <span className="text-red-500">*</span>
                 </Label>
                 <Select
+                  value={formData.idEvento}
                   onValueChange={(value) => {
                     setFormData({ ...formData, idEvento: value })
                     setErrors({ ...errors, idEvento: false })
                   }}
-                  value={formData.idEvento}
                 >
                   <SelectTrigger
                     className={`p-2 bg-white text-black rounded-md border ${
@@ -463,11 +482,11 @@ export default function ControlEvaluationForm() {
                   Control (a aplicar o evaluar) <span className="text-red-500">*</span>
                 </Label>
                 <Select
+                  value={formData.idControl}
                   onValueChange={(value) => {
                     setFormData({ ...formData, idControl: value })
                     setErrors({ ...errors, idControl: false })
                   }}
-                  value={formData.idControl}
                 >
                   <SelectTrigger
                     className={`p-2 bg-white text-black rounded-md border ${
@@ -843,20 +862,20 @@ export default function ControlEvaluationForm() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-violet-600 border-violet-600"
+                            className="text-violet-600 border-violet-600 h-8 w-8 p-0"
                             onClick={() => handleEdit(evaluation)}
-                            disabled={isLoading}
                           >
                             <Edit3 className="w-4 h-4" />
+                            <span className="sr-only">Editar</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-orange-600 border-orange-600"
+                            className="text-orange-600 border-orange-600 h-8 w-8 p-0"
                             onClick={() => handleDelete(evaluation.id)}
-                            disabled={isLoading}
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span className="sr-only">Eliminar</span>
                           </Button>
                         </div>
                       </TableCell>
