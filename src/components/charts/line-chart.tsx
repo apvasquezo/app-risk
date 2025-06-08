@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import type { ApexOptions } from "apexcharts"
 
-// Importar dinámicamente para evitar errores SSR
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false })
 
 interface LineChartProps {
@@ -22,6 +21,16 @@ export default function LineChart({ series, categories }: LineChartProps) {
     setMounted(true)
   }, [])
 
+  // Semáforo de colores por valor
+  const getColor = (value: number): string => {
+    if (value <= 2) return "#EF4444" // rojo - Crítico
+    if (value <= 5) return "#FACC15" // amarillo - Aceptable
+    return "#22C55E" // verde - Excelente
+  }
+
+  // Asignar colores a los puntos de la serie
+  const pointColors = series[0].data.map(getColor)
+
   const options: ApexOptions = {
     chart: {
       type: "line",
@@ -30,7 +39,6 @@ export default function LineChart({ series, categories }: LineChartProps) {
       },
       background: "transparent",
     },
-    colors: ["#06B6D4", "#9333EA", "#EF4444"],
     stroke: {
       curve: "smooth",
       width: 3,
@@ -44,9 +52,26 @@ export default function LineChart({ series, categories }: LineChartProps) {
     grid: {
       borderColor: "#f1f1f1",
     },
+    markers: {
+      size: 6,
+      colors: pointColors,
+      strokeColors: "#fff",
+      strokeWidth: 2,
+    },
+    tooltip: {
+      y: {
+        formatter: (val: number) => {
+          if (val <= 2) return `${val} (Crítico)`
+          if (val <= 5) return `${val} (Aceptable)`
+          return `${val} (Excelente)`
+        },
+      },
+    },
   }
 
-  if (!mounted) return <div className="h-full flex items-center justify-center">Loading chart...</div>
+  if (!mounted) {
+    return <div className="h-full flex items-center justify-center">Loading chart...</div>
+  }
 
   return (
     <div className="h-full w-full">
