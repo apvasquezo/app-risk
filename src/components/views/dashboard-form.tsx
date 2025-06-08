@@ -18,49 +18,31 @@ export default function Dashboard() {
 
   // Obtener datos de estado de planes
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.warn("No hay token en localStorage.");
-      return;
-    }
-
     async function fetchPlanStatus() {
       try {
-        const response = await api.get("/dashboard");
-        const plans = response.data;
+        const responseT = await api.get("/dashboard");
+        const plans = responseT.data;
 
         const labels = plans.map((p: { state: string }) => p.state);
-        const data = plans.map((p: { cantidad: number }) => p.cantidad);
-
+        const dataT = plans.map((p: { cantidad: number }) => p.cantidad);
         setPlanStatusLabels(labels);
-        setPlanStatusData(data);
+        setPlanStatusData(dataT);
+        //datos para la grafica heatmap
+        const responseH = await api.get("/dashboard/risk-heatmap");
+        const dataH = responseH.data;
+        const categorias = Array.from(
+          new Set(dataH.flatMap((serie: any) => serie.data.map((d: any) => d.x as string)))
+        ) as string[];
+        setHeatmapCategories(categorias);
+        setHeatmapData(dataH)
+        //datos para la grafica de barras Frecuencia de incidente de riesgos
+        
       } catch (error) {
         console.error("Error al obtener los estados de planes:", error);
       }
     }
 
     fetchPlanStatus();
-  }, []);
-
-  // Obtener datos del mapa de calor
-  useEffect(() => {
-    async function fetchHeatmapData() {
-      try {
-        const response = await api.get("/dashboard/risk-heatmap");
-        const data = response.data;
-
-        const categorias = Array.from(
-          new Set(data.flatMap((serie: any) => serie.data.map((d: any) => d.x as string)))
-        ) as string[];
-
-        setHeatmapCategories(categorias);
-        setHeatmapData(data);
-      } catch (error) {
-        console.error("Error al obtener datos del mapa de calor:", error);
-      }
-    }
-
-    fetchHeatmapData();
   }, []);
 
   return (

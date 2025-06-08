@@ -1,14 +1,8 @@
-"use client";
+import DashBoardForm from "@/components/views/dashboard-form"
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-
-export default function RedirectToDashboard() {
-  const router = useRouter();
-
-  useEffect(() => {
-    router.push("/admin/dashboard");
-  }, [router]);
-
-  return <p>Redirigiendo al dashboard...</p>;
-}
+export default function Home() {
+  return (
+    <main >
+      <DashBoardForm />
+    </main>
+  )
