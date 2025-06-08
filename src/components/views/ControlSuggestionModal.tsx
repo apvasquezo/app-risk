@@ -1,3 +1,4 @@
+"use client"
 import { Fragment, useState } from 'react'
 import { Dialog, Transition, Tab } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -27,20 +28,21 @@ export default function RiskControlModal({ isOpen, onClose, riskData }: RiskCont
     setLoading(true)
     setError('')
     try {
-      const response = await fetch('/api/risk-controls', {
+      const response = await fetch('/api/risk_controls', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(riskData),
       })
-
+      console.log("Lo que llega de riesgos ", riskData)
       if (!response.ok) {
         throw new Error('Error al obtener controles')
       }
 
       const data = await response.json()
-      setControls(JSON.parse(data))
+      console.log("Controles recibidos:", data);
+      setControls(data)
     } catch (err) {
       setError('Error al generar los controles')
       console.error(err)
@@ -53,9 +55,9 @@ export default function RiskControlModal({ isOpen, onClose, riskData }: RiskCont
     if (!controls) return
 
     const content = `Controles Sugeridos:
-Preventivo: ${controls.preventivo}
-Detectivo: ${controls.detectivo}
-Correctivo: ${controls.correctivo}`
+      Preventivo: ${controls.preventivo}
+      Detectivo: ${controls.detectivo}
+      Correctivo: ${controls.correctivo}`
 
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)

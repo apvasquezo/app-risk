@@ -153,13 +153,7 @@ export default function EventRisk() {
   const [serviceList, setServiceList] = useState<Service[]>([]);
   const [personalList, setPersonalList] = useState<Employee[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const riskData = {
-    field1: "Operativo",
-    field2: "Procesos",
-    field3: "Ventas",
-    field4: "Online",
-    field5: "Pérdida de datos"
-  }
+ 
   const [eventEntries, setEventEntries] = useState<EventEntry[]>([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -191,6 +185,13 @@ export default function EventRisk() {
   const getServiceDescription = (id_service: string) => {
     const service = serviceList.find((type) => type.id.toString() === id_service)
     return service ? service.name : id_service
+  }
+  const riskData = {
+    field1: getEventDescription(formData.eventId),
+    field2: formData.factorRiesgo,
+    field3: getProcesDescription(formData.proceso),
+    field4: getChanelDescription(formData.canal),
+    field5: formData.descripcion,
   }
 
   useEffect(() => {
