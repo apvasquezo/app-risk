@@ -16,8 +16,8 @@ export default function Dashboard() {
   const [heatmapData, setHeatmapData] = useState<any[]>([]);
   const [heatmapCategories, setHeatmapCategories] = useState<string[]>([]);
 
+  // Obtener datos de estado de planes
   useEffect(() => {
-
     async function fetchPlanStatus() {
       try {
         const responseT = await api.get("/dashboard");
