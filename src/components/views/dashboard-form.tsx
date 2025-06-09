@@ -36,22 +36,20 @@ export default function Dashboard() {
         const dataE = (responseEfficiency.data).map((e: { amount: number }) => e.amount);
         setEfficiencyLabel(labelE);
         setEfficiencyData(dataE);
-        // datos para la grafica de lineas KRI frecuencia de evaluacion de controles
-        const responseFrecuency = await api.get("/dashboard/frequency");
-        const labelF = responseFrecuency.data.map((e: { periodo: string }) => e.periodo)
-        const dataF = responseFrecuency.data.map((e: { cantidad: any }) => Number(e.cantidad))    
-        setFrecuencyLabels(labelF)
-        setFrecuencyData(dataF)
+
         //datos para la grafica radar cumplimiento por responsable
         const responseCompliance = await api.get("/dashboard/compliance");
         const labelCmpliance = (responseCompliance.data).map((p: { responsible: string }) => p.responsible);
         const dataCompliance = (responseCompliance.data).map((p: { cumplimiento: number }) => p.cumplimiento);
-        console.log("que llega de cuimplimiento ", responseCompliance)
-        console.log ("labels ", labelCmpliance)
-        console.log ("Datos ", dataCompliance)
         setComplianceLabel(labelCmpliance);
         setComplianceData(dataCompliance);
-
+        // datos para la grafica de lineas KRI frecuencia de evaluacion de controles
+        const responseFrecuency = await api.get("/dashboard/frequency");
+        console.log("que llega de frecuency ", responseFrecuency)        
+        const labelF = responseFrecuency.data.map((e: { periodo: string }) => e.periodo)
+        const dataF = responseFrecuency.data.map((e: { cantidad: any }) => Number(e.cantidad))    
+        setFrecuencyLabels(labelF)
+        setFrecuencyData(dataF)
         
       } catch (error) {
         console.error("Error al obtener los estados de planes:", error);
