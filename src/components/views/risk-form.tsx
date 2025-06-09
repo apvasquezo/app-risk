@@ -112,7 +112,7 @@ export default function EventRisk() {
     cuantia: "",
     cuantiaRecuperada: "",
     cuantiaRecuperadaSeguros: "",
-    factorRiesgo: "",
+    factorRiesgo: "Fraude Interno",
     cuentaContable: "",
     productoServicio: "",
     proceso: "",
@@ -261,7 +261,7 @@ export default function EventRisk() {
       cuantia: "",
       cuantiaRecuperada: "",
       cuantiaRecuperadaSeguros: "",
-      factorRiesgo: "",
+      factorRiesgo: "Fraude Interno",
       cuentaContable: "",
       productoServicio: "",
       proceso: "",
@@ -361,7 +361,7 @@ export default function EventRisk() {
           cuantia: responseEventlog.data.amount,
           cuantiaRecuperada: responseEventlog.data.recovered_amount,
           cuantiaRecuperadaSeguros: responseEventlog.data.insurance_recovery,
-          factorRiesgo: formData.factorRiesgo,
+          factorRiesgo: "Fraude Interno",
           cuentaContable: responseEventlog.data.acount,
           productoServicio: getServiceDescription(responseEventlog.data.product_id),
           proceso: getProcesDescription(responseEventlog.data.process_id),
@@ -694,7 +694,7 @@ export default function EventRisk() {
                 </Label>
                 <Input
                   id="factorRiesgo"
-                  value={formData.factorRiesgo}
+                  value={"Fraude Interno"}
                   onChange={(e) => setFormData({ ...formData, factorRiesgo: e.target.value })}
                   placeholder="Ingrese el factor de riesgo"
                   className={cn(errors.factorRiesgo ? "border-red-500" : "border-violet-200")}
@@ -880,8 +880,8 @@ export default function EventRisk() {
                       <TableCell>{entry.eventId}</TableCell>
                       <TableCell>{new Date(entry.fechaInicio).toLocaleDateString("es-CO")}</TableCell>
                       <TableCell>{entry.cuantia}</TableCell>
-                      <TableCell>{entry.factorRiesgo}</TableCell>
-                      <TableCell>{entry.proceso}</TableCell>
+                      <TableCell>Fraude Interno</TableCell>
+                      <TableCell>{getProcesDescription(entry.proceso)}</TableCell>
                       <TableCell>{entry.responsable}</TableCell>
                       <TableCell>
                         <span

@@ -303,6 +303,7 @@ export default function ControlEvaluationForm() {
           })
         } else {
           await api.post("/evalcontrol", payload)
+          console.log("el payload ", payload)
           const responseEval = await api.get("/evalcontrol")
           setEvaluations(transformEvaluation(responseEval.data))
           toast({
