@@ -7,14 +7,14 @@ import BarChart from "@/components/charts/bar-chart";
 import LineChart from "@/components/charts/line-chart";
 import AreaChart from "@/components/charts/area-chart";
 import RadarChart from "@/components/charts/radar-chart";
-import HeatmapChart from "@/components/charts/heatmap-chart";
+import RiskScatterChart from "../charts/scatter-chart";
 import api from "@/lib/axios";
 
 export default function Dashboard() {
   const [planStatusLabels, setPlanStatusLabels] = useState<string[]>([]);
   const [planStatusData, setPlanStatusData] = useState<number[]>([]);
-  const [heatmapData, setHeatmapData] = useState<any[]>([]);
-  const [heatmapCategories, setHeatmapCategories] = useState<string[]>([]);
+  const [complianceData, setComplianceData] = useState<number[]>([]);
+  const [complianceLabel, setComplianceLabel] = useState<string[]>([]);
   const [efficiencyLabel, setEfficiencyLabel] = useState<string[]>([]);
   const [efficiencyData, setEfficiencyData] = useState<number[]>([]);
   const [frecuencyLabels, setFrecuencyLabels] = useState<string[]>([])
@@ -24,21 +24,12 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchPlanStatus() {
       try {
-        const responseT = await api.get("/dashboard");
-        const plans = responseT.data;
-
-        const labels = plans.map((p: { state: string }) => p.state);
-        const dataT = plans.map((p: { cantidad: number }) => p.cantidad);
+        const responseT = await api.get("/dashboard/plan");
+        const labels = (responseT.data).map((p: { state: string }) => p.state);
+        const dataT = (responseT.data).map((p: { amount: number }) => p.amount);
         setPlanStatusLabels(labels);
         setPlanStatusData(dataT);
-        //datos para la grafica heatmap
-        //const responseH = await api.get("/dashboard/risk-heatmap");
-        //const dataH = responseH.data;
-        //const categorias = Array.from(
-          //new Set(dataH.flatMap((serie: any) => serie.data.map((d: any) => d.x as string)))
-        //) as string[];
-        //setHeatmapCategories(categorias);
-        //setHeatmapData(dataH)
+
         //datos para la grafica de barras KRI eficiencia del control
         const responseEfficiency = await api.get("/dashboard/efficiency");
         const labelE = (responseEfficiency.data).map((e: { state: string }) => e.state);
@@ -51,6 +42,16 @@ export default function Dashboard() {
         const dataF = responseFrecuency.data.map((e: { cantidad: any }) => Number(e.cantidad))    
         setFrecuencyLabels(labelF)
         setFrecuencyData(dataF)
+        //datos para la grafica radar cumplimiento por responsable
+        const responseCompliance = await api.get("/dashboard/compliance");
+        const labelCmpliance = (responseCompliance.data).map((p: { responsible: string }) => p.responsible);
+        const dataCompliance = (responseCompliance.data).map((p: { cumplimiento: number }) => p.cumplimiento);
+        console.log("que llega de cuimplimiento ", responseCompliance)
+        console.log ("labels ", labelCmpliance)
+        console.log ("Datos ", dataCompliance)
+        setComplianceLabel(labelCmpliance);
+        setComplianceData(dataCompliance);
+
         
       } catch (error) {
         console.error("Error al obtener los estados de planes:", error);
@@ -108,22 +109,19 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Frecuencia Aplicacion de Controles</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Cumplimiento por Responsable</CardTitle></CardHeader>
           <CardContent className="h-80">
             <RadarChart
-              categories={["Semanal", "Mensual", "Trimestral", "Anual"]}
-              series={[{ name: "Evaluaciones", data: [2, 7, 4, 1] }]}
+              categories={complianceLabel}
+              series={[{ name: "Cumplimiento", data: complianceData }]}
             />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle>Mapa de Calor de Riesgos por Proceso</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Riesgos por Proceso</CardTitle></CardHeader>
           <CardContent className="h-80">
-            <HeatmapChart
-              xCategories={heatmapCategories}
-              series={heatmapData}
-            />
+            <RiskScatterChart />
           </CardContent>
         </Card>
       </div>
