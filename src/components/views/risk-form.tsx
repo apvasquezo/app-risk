@@ -188,7 +188,7 @@ export default function EventRisk() {
   }
   const riskData = {
     field1: getEventDescription(formData.eventId),
-    field2: formData.factorRiesgo,
+    field2: "Fraude Interno",
     field3: getProcesDescription(formData.proceso),
     field4: getChanelDescription(formData.canal),
     field5: formData.descripcion,
